@@ -79,6 +79,7 @@ export type SiteSettings = {
   youth_name: string | null
   logo_url: string | null
   hero_image_url: string | null
+  hero_images: string[] | null
   tagline: string | null
   description: string | null
   address: string | null

@@ -78,7 +78,9 @@ export default function Home() {
       {/* 4. Latest Videos */}
       <Section>
         <SectionHeading title="Latest Videos" linkTo="/gallery" linkLabel="Gallery" />
-        {videos.data?.length ? (
+        {videos.loading ? (
+          <CardSkeletons />
+        ) : videos.data?.length ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {videos.data.map((v) => (
               <VideoCard key={v.id} video={v} />
@@ -96,7 +98,9 @@ export default function Home() {
           subtitle="Our growing archive of Youth activities, year by year."
           linkTo="/memories"
         />
-        {years.length ? (
+        {activities.loading ? (
+          <CardSkeletons />
+        ) : years.length ? (
           <div className="space-y-10">
             {years.map(([year, rows]) => (
               <div key={year}>
@@ -117,7 +121,9 @@ export default function Home() {
       {/* 6. Announcements */}
       <Section>
         <SectionHeading title="Announcements" linkTo="/announcements" />
-        {announcements.data?.length ? (
+        {announcements.loading ? (
+          <div className="h-32 animate-pulse rounded-xl bg-surface" />
+        ) : announcements.data?.length ? (
           <div className="grid gap-5 md:grid-cols-2">
             {announcements.data.map((a) => (
               <AnnouncementCard key={a.id} item={a} />
@@ -131,7 +137,9 @@ export default function Home() {
       {/* 7. Youth Leaders */}
       <Section tinted>
         <SectionHeading title="Meet Our Youth Leaders" />
-        {leaders.data?.length ? (
+        {leaders.loading ? (
+          <CardSkeletons />
+        ) : leaders.data?.length ? (
           <div className="grid gap-8 sm:grid-cols-3">
             {leaders.data.map((l) => (
               <LeaderCard key={l.id} leader={l} />

@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 
 export type LightboxItem = {
   url: string
@@ -33,8 +33,15 @@ export default function Lightbox({
     onNavigate((index - 1 + items.length) % items.length)
   }, [index, items.length, onNavigate])
 
+  const closeRef = useRef<HTMLButtonElement>(null)
+  const prevFocused = useRef<Element | null>(null)
+
   useEffect(() => {
     if (!open) return
+    prevFocused.current = document.activeElement
+    // Skill ui-ux-pro-max (Focus States): move keyboard focus into the
+    // dialog so controls are operable immediately.
+    closeRef.current?.focus()
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
       if (e.key === 'ArrowRight') next()
@@ -46,6 +53,8 @@ export default function Lightbox({
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = prevOverflow
+      // Return focus to the thumbnail that opened the viewer.
+      if (prevFocused.current instanceof HTMLElement) prevFocused.current.focus()
     }
   }, [open, onClose, next, prev])
 
@@ -57,14 +66,15 @@ export default function Lightbox({
       role="dialog"
       aria-modal="true"
       aria-label="Photo viewer"
-      className="fixed inset-0 z-[100] flex flex-col bg-black/92"
+      className="fixed inset-0 z-[100] flex flex-col bg-black/90"
       onClick={onClose}
     >
       <div className="flex items-center justify-between px-4 py-3 text-white/80">
-        <span className="text-sm">
+        <span className="text-sm" role="status" aria-live="polite">
           {index + 1} / {items.length}
         </span>
         <button
+          ref={closeRef}
           type="button"
           onClick={onClose}
           aria-label="Close photo viewer"
@@ -118,7 +128,7 @@ export default function Lightbox({
       </div>
 
       {item.caption && (
-        <p className="px-6 pb-6 text-center text-sm text-white/75">{item.caption}</p>
+        <p className="px-6 pb-6 text-center text-sm text-white/80">{item.caption}</p>
       )}
     </div>
   )

@@ -14,6 +14,9 @@
 
 html {
   scroll-behavior: smooth;
+  /* Skill ui-ux-pro-max (Focus Not Obscured): keep anchor targets and
+     keyboard focus clear of the sticky header. */
+  scroll-padding-top: 80px;
 }
 
 body {
@@ -24,4 +27,20 @@ body {
 :focus-visible {
   outline: 3px solid var(--color-skyblue);
   outline-offset: 2px;
+}
+
+/* Skill ui-ux-pro-max: honor reduced motion for scroll, transitions,
+   and animation (landing auto-rotation / carousel guidance). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

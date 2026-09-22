@@ -20,7 +20,7 @@ export default function SectionHeading({
       {linkTo && (
         <Link
           to={linkTo}
-          className="text-sm font-semibold text-brand-red hover:text-brand-red-dark"
+          className="-mx-2 inline-flex min-h-11 items-center px-2 text-sm font-semibold text-brand-red hover:text-brand-red-dark"
         >
           {linkLabel} &rarr;
         </Link>

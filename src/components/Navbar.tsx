@@ -1,10 +1,21 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import logo from '../assets/logo/church-logo.png'
 import { site, navLinks } from '../site'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
+
+  // Skill ui-ux-pro-max: keyboard focus needs a visible, unobscured path.
+  // Esc closes the mobile menu and returns focus to the toggle.
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open ])
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur">
@@ -22,7 +33,7 @@ export default function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden items-center gap-1 lg:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           {navLinks.map((l) => (
             <NavLink
               key={l.to}
@@ -30,8 +41,10 @@ export default function Navbar() {
               end={l.to === '/'}
               className={({ isActive }) =>
                 [
-                  'rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                  isActive ? 'text-brand-red' : 'text-ink hover:bg-surface hover:text-navy',
+                  'inline-flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-brand-red/10 text-brand-red'
+                    : 'text-ink hover:bg-surface hover:text-navy',
                 ].join(' ')
               }
             >
@@ -42,7 +55,7 @@ export default function Navbar() {
             href={site.facebookUrl}
             target="_blank"
             rel="noreferrer"
-            className="ml-2 rounded-md bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-dark"
+            className="ml-2 inline-flex min-h-11 items-center rounded-md bg-navy px-4 py-2 text-sm font-semibold text-white hover:bg-navy-dark"
           >
             Facebook
           </a>

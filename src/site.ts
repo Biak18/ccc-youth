@@ -16,6 +16,7 @@ export const navLinks = [
   { label: 'Events', to: '/events' },
   { label: 'Activities', to: '/activities' },
   { label: 'Memories', to: '/memories' },
+  { label: 'Gallery', to: '/gallery' },
   { label: 'Announcements', to: '/announcements' },
   { label: 'Contact', to: '/contact' },
 ]

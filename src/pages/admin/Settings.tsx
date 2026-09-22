@@ -21,7 +21,6 @@ type FormState = {
   facebook_url: string
   youtube_url: string
   instagram_url: string
-  hero_image_url: string
 }
 
 const empty: FormState = {
@@ -34,7 +33,6 @@ const empty: FormState = {
   facebook_url: '',
   youtube_url: '',
   instagram_url: '',
-  hero_image_url: '',
 }
 
 export default function Settings() {
@@ -42,6 +40,7 @@ export default function Settings() {
     supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
   )
   const [form, setForm] = useState<FormState>(empty)
+  const [heroImages, setHeroImages] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -58,9 +57,18 @@ export default function Settings() {
       facebook_url: data.facebook_url ?? '',
       youtube_url: data.youtube_url ?? '',
       instagram_url: data.instagram_url ?? '',
-      hero_image_url: data.hero_image_url ?? '',
     })
+    setHeroImages(data.hero_images ?? [])
   }, [data])
+
+  const moveHero = (index: number, dir: -1 | 1) =>
+    setHeroImages((prev) => {
+      const next = [...prev]
+      const target = index + dir
+      if (target < 0 || target >= next.length) return prev
+      ;[next[index], next[target]] = [next[target], next[index]]
+      return next
+    })
 
   const set = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [key]: e.target.value }))
@@ -82,7 +90,8 @@ export default function Settings() {
       facebook_url: clean(form.facebook_url),
       youtube_url: clean(form.youtube_url),
       instagram_url: clean(form.instagram_url),
-      hero_image_url: clean(form.hero_image_url),
+      hero_images: heroImages,
+      hero_image_url: heroImages[0] ?? null,
     }
 
     const { error } = await supabase.from('site_settings').update(payload).eq('id', 1)
@@ -160,44 +169,79 @@ export default function Settings() {
           </Field>
         </div>
 
-        <Field label="Hero image" hint="Replaces the built-in Youth group photo on the homepage.">
-          <div className="flex items-center gap-4">
-            {form.hero_image_url && (
-              <img
-                src={form.hero_image_url}
-                alt=""
-                className="h-20 w-32 rounded-lg object-cover ring-1 ring-line"
-              />
-            )}
-            <input
-              type="file"
-              accept="image/*"
-              className="text-sm"
-              onChange={async (e) => {
-                const f = e.target.files?.[0]
-                if (!f) return
-                setBusy(true)
-                try {
+        <div>
+          <h2 className="text-sm font-semibold text-ink">Hero photos</h2>
+          <p className="mb-2 text-xs text-muted">
+            Shown as a rotating carousel on the homepage. Add two or three for the
+            best effect. If you add none, the photos bundled with the site are used.
+          </p>
+
+          {heroImages.length > 0 && (
+            <ul className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {heroImages.map((url, i) => (
+                <li key={url} className="overflow-hidden rounded-lg ring-1 ring-line">
+                  <img src={url} alt="" className="aspect-video w-full object-cover" />
+                  <div className="flex items-center justify-between gap-1 bg-white p-1.5">
+                    <div className="flex gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => moveHero(i, -1)}
+                        disabled={i === 0}
+                        aria-label="Move photo earlier"
+                        className="rounded px-1.5 py-1 text-xs text-navy hover:bg-surface disabled:opacity-30"
+                      >
+                        &larr;
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveHero(i, 1)}
+                        disabled={i === heroImages.length - 1}
+                        aria-label="Move photo later"
+                        className="rounded px-1.5 py-1 text-xs text-navy hover:bg-surface disabled:opacity-30"
+                      >
+                        &rarr;
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setHeroImages((p) => p.filter((u) => u !== url))}
+                      className="rounded px-1.5 py-1 text-xs font-semibold text-brand-red hover:bg-brand-red/10"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            className="text-sm"
+            onChange={async (e) => {
+              const files = Array.from(e.target.files ?? [])
+              e.target.value = ''
+              if (!files.length) return
+              setBusy(true)
+              setError(null)
+              try {
+                for (const f of files) {
                   const url = await uploadSingleImage(f, 'branding', 'hero')
-                  setForm((prev) => ({ ...prev, hero_image_url: url }))
-                } catch (err) {
-                  setError((err as Error).message)
-                } finally {
-                  setBusy(false)
+                  setHeroImages((prev) => [...prev, url])
                 }
-              }}
-            />
-            {form.hero_image_url && (
-              <button
-                type="button"
-                onClick={() => setForm((prev) => ({ ...prev, hero_image_url: '' }))}
-                className="text-sm font-semibold text-brand-red hover:underline"
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        </Field>
+              } catch (err) {
+                setError((err as Error).message)
+              } finally {
+                setBusy(false)
+              }
+            }}
+          />
+          <p className="mt-1 text-xs text-muted">
+            You can select several at once. Remember to press Save.
+          </p>
+        </div>
 
         <div className="border-t border-line pt-6">
           <button type="submit" disabled={busy} className={btnPrimary}>
