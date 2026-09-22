@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type {
   Activity,
+  Status,
   Announcement,
   EventRow,
   Media,
@@ -49,7 +50,7 @@ export function useQuery<T>(
   return state
 }
 
-const PUBLIC_STATUSES = ['published', 'archived']
+const PUBLIC_STATUSES: Status[] = ['published', 'archived']
 
 /* ---------------------------------------------------------------- lists */
 

@@ -97,16 +97,36 @@ export type Profile = {
   created_at: string
 }
 
+export type Row<T> = T
+type Table<R> = {
+  Row: R
+  Insert: Partial<R>
+  Update: Partial<R>
+  Relationships: []
+}
+
+/**
+ * supabase-js requires Views, Functions, Enums and CompositeTypes to be
+ * present. Without them the whole schema fails its type constraint and
+ * every insert/update silently resolves to `never`.
+ */
 export type Database = {
   public: {
     Tables: {
-      activities: { Row: Activity; Insert: Partial<Activity>; Update: Partial<Activity> }
-      events: { Row: EventRow; Insert: Partial<EventRow>; Update: Partial<EventRow> }
-      announcements: { Row: Announcement; Insert: Partial<Announcement>; Update: Partial<Announcement> }
-      media: { Row: Media; Insert: Partial<Media>; Update: Partial<Media> }
-      youth_leaders: { Row: YouthLeader; Insert: Partial<YouthLeader>; Update: Partial<YouthLeader> }
-      site_settings: { Row: SiteSettings; Insert: Partial<SiteSettings>; Update: Partial<SiteSettings> }
-      profiles: { Row: Profile; Insert: Partial<Profile>; Update: Partial<Profile> }
+      activities: Table<Activity>
+      events: Table<EventRow>
+      announcements: Table<Announcement>
+      media: Table<Media>
+      youth_leaders: Table<YouthLeader>
+      site_settings: Table<SiteSettings>
+      profiles: Table<Profile>
     }
+    Views: Record<never, never>
+    Functions: Record<never, never>
+    Enums: {
+      content_status: Status
+      user_role: Role
+    }
+    CompositeTypes: Record<never, never>
   }
 }
