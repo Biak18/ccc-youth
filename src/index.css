@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@theme {
+  --color-navy: #1F2F68;
+  --color-navy-dark: #16234F;
+  --color-brand-red: #ED1C24;
+  --color-brand-red-dark: #C9161D;
+  --color-skyblue: #3D9ACF;
+  --color-surface: #F7F8FC;
+  --color-ink: #172033;
+  --color-muted: #667085;
+  --color-line: #E5E7EB;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-ink antialiased;
+}
+
+/* Visible focus states (UI-UX.md 15 - Accessibility) */
+:focus-visible {
+  outline: 3px solid var(--color-skyblue);
+  outline-offset: 2px;
+}
