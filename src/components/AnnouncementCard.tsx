@@ -6,12 +6,12 @@ export default function AnnouncementCard({ item }: { item: Announcement }) {
     <article
       className={[
         'rounded-2xl border bg-card p-5 shadow-sm',
-        item.is_pinned ? 'border-brand-red/40 bg-brand-red/[0.03]' : 'border-line',
+        item.is_pinned ? 'border-gold/50 bg-gold/[0.06]' : 'border-line',
       ].join(' ')}
     >
       <div className="flex items-center gap-2">
         {item.is_pinned && (
-          <span className="rounded bg-brand-red px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
+          <span className="rounded bg-gold px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-yellow-900">
             Pinned
           </span>
         )}

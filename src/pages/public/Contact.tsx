@@ -32,7 +32,7 @@ export default function Contact() {
                 <div>
                   <dt className="text-sm font-semibold text-muted">Phone</dt>
                   <dd>
-                    <a className="hover:text-heading" href={`tel:${phone}`}>
+                    <a className="hover:text-link" href={`tel:${phone}`}>
                       {phone}
                     </a>
                   </dd>
@@ -42,7 +42,7 @@ export default function Contact() {
                 <div>
                   <dt className="text-sm font-semibold text-muted">Email</dt>
                   <dd>
-                    <a className="hover:text-heading" href={`mailto:${email}`}>
+                    <a className="hover:text-link" href={`mailto:${email}`}>
                       {email}
                     </a>
                   </dd>

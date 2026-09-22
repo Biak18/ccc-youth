@@ -23,7 +23,8 @@
   --color-muted: #667085;
   --color-line: #E5E7EB;
   --color-heading: #1F2F68;
-  --color-ember: #ED1C24;
+  --color-ember: #D91E25;
+  --color-link: #2779B8;
 }
 
 .dark {
@@ -38,6 +39,7 @@
   --color-line: #2B3766;
   --color-heading: #E9EEFF;
   --color-ember: #FF7A7F;
+  --color-link: #8FCBF0;
 }
 
 html {
