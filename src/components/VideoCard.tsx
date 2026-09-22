@@ -22,7 +22,9 @@ export default function VideoCard({ video }: { video: Media }) {
         </span>
       </div>
       <div className="p-4">
-        <h3 className="font-semibold text-navy">{video.title ?? 'Youth video'}</h3>
+        <h3 className="font-semibold text-navy group-hover:text-brand-red">
+          {video.title ?? 'Youth video'}
+        </h3>
         <p className="mt-1 text-sm text-muted">{formatDate(video.created_at)}</p>
       </div>
     </a>

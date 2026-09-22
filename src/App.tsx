@@ -3,7 +3,9 @@ import PublicLayout from './layouts/PublicLayout'
 import Home from './pages/public/Home'
 import About from './pages/public/About'
 import Events from './pages/public/Events'
+import EventDetail from './pages/public/EventDetail'
 import Activities from './pages/public/Activities'
+import ActivityDetail from './pages/public/ActivityDetail'
 import Memories from './pages/public/Memories'
 import Announcements from './pages/public/Announcements'
 import Gallery from './pages/public/Gallery'
@@ -17,7 +19,9 @@ export default function App() {
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="events" element={<Events />} />
+        <Route path="events/:slug" element={<EventDetail />} />
         <Route path="activities" element={<Activities />} />
+        <Route path="activities/:slug" element={<ActivityDetail />} />
         <Route path="memories" element={<Memories />} />
         <Route path="announcements" element={<Announcements />} />
         <Route path="gallery" element={<Gallery />} />
