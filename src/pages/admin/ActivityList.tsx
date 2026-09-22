@@ -73,7 +73,7 @@ export default function ActivityList() {
                 'rounded-full px-4 py-2 text-sm font-semibold capitalize',
                 filter === f
                   ? 'bg-navy text-white'
-                  : 'bg-white text-ink ring-1 ring-line hover:bg-surface',
+                  : 'bg-card text-ink ring-1 ring-line hover:bg-surface',
               ].join(' ')}
             >
               {f}
@@ -84,7 +84,7 @@ export default function ActivityList() {
 
       <FormError message={error ?? actionError} />
 
-      <div className="mt-4 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-line">
+      <div className="mt-4 overflow-hidden rounded-xl bg-card shadow-sm ring-1 ring-line">
         {loading ? (
           <p className="px-5 py-8 text-center text-sm text-muted">Loading...</p>
         ) : rows.length ? (
@@ -94,7 +94,7 @@ export default function ActivityList() {
                 <div className="flex flex-wrap items-center gap-3">
                   <Link
                     to={`/admin/activities/${a.id}/edit`}
-                    className="min-w-0 flex-1 truncate font-semibold text-navy hover:text-brand-red"
+                    className="min-w-0 flex-1 truncate font-semibold text-heading hover:text-brand-red"
                   >
                     {a.title}
                   </Link>

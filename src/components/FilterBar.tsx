@@ -7,9 +7,9 @@ type Props = {
   onCategory: (c: string | 'all') => void
 }
 
-const base = 'rounded-full px-4 py-2 text-sm font-semibold transition'
+const base = 'inline-flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-semibold transition'
 const on = 'bg-brand-red text-white'
-const off = 'bg-white text-ink ring-1 ring-line hover:bg-surface'
+const off = 'bg-card text-ink ring-1 ring-line hover:bg-surface'
 
 export default function FilterBar({
   years,

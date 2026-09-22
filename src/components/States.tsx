@@ -20,7 +20,7 @@ export function CardSkeletons({ count = 3 }: { count?: number }) {
   return (
     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="overflow-hidden rounded-xl border border-line bg-white">
+        <div key={i} className="overflow-hidden rounded-2xl border border-line bg-card">
           <div className="aspect-[4/3] animate-pulse bg-surface" />
           <div className="space-y-3 p-5">
             <div className="h-4 w-2/3 animate-pulse rounded bg-surface" />

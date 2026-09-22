@@ -46,7 +46,7 @@ export default function Dashboard() {
         {cards.map((c) => {
           const inner = (
             <>
-              <p className="text-3xl font-bold text-navy">{c.value ?? '-'}</p>
+              <p className="text-3xl font-bold text-heading">{c.value ?? '-'}</p>
               <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted">
                 {c.label}
               </p>
@@ -56,27 +56,27 @@ export default function Dashboard() {
             <Link
               key={c.label}
               to={c.to}
-              className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-line hover:ring-skyblue"
+              className="rounded-xl bg-card p-5 shadow-sm ring-1 ring-line hover:ring-skyblue"
             >
               {inner}
             </Link>
           ) : (
-            <div key={c.label} className="rounded-xl bg-white p-5 shadow-sm ring-1 ring-line">
+            <div key={c.label} className="rounded-xl bg-card p-5 shadow-sm ring-1 ring-line">
               {inner}
             </div>
           )
         })}
       </div>
 
-      <h2 className="mt-12 text-lg font-bold text-navy">Recent Activities</h2>
-      <div className="mt-4 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-line">
+      <h2 className="mt-12 text-lg font-bold text-heading">Recent Activities</h2>
+      <div className="mt-4 overflow-hidden rounded-xl bg-card shadow-sm ring-1 ring-line">
         {activities?.length ? (
           <ul className="divide-y divide-line">
             {activities.slice(0, 6).map((a) => (
               <li key={a.id} className="flex items-center justify-between gap-3 px-5 py-3.5">
                 <Link
                   to={`/admin/activities/${a.id}/edit`}
-                  className="min-w-0 flex-1 truncate text-sm font-medium text-navy hover:text-brand-red"
+                  className="min-w-0 flex-1 truncate text-sm font-medium text-heading hover:text-brand-red"
                 >
                   {a.title}
                 </Link>

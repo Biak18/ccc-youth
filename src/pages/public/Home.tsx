@@ -104,7 +104,7 @@ export default function Home() {
           <div className="space-y-10">
             {years.map(([year, rows]) => (
               <div key={year}>
-                <h3 className="mb-4 text-xl font-bold text-navy">{year}</h3>
+                <h3 className="mb-4 text-xl font-bold text-heading">{year}</h3>
                 <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {rows.slice(0, 3).map((a) => (
                     <ActivityCard key={a.id} activity={a} />

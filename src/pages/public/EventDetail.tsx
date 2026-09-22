@@ -78,7 +78,7 @@ export default function EventDetail() {
 
           <aside className="lg:col-span-1">
             <div className="rounded-2xl bg-surface p-6">
-              <h2 className="text-lg font-bold text-navy">Details</h2>
+              <h2 className="text-lg font-bold text-heading">Details</h2>
               <dl className="mt-4 space-y-4 text-sm">
                 <div>
                   <dt className="font-semibold text-muted">Date</dt>
@@ -122,7 +122,7 @@ export default function EventDetail() {
               )}
               <Link
                 to="/events"
-                className="mt-3 block rounded-lg bg-white px-5 py-3 text-center text-sm font-semibold text-navy ring-1 ring-line hover:bg-surface"
+                className="mt-3 block rounded-lg bg-card px-5 py-3 text-center text-sm font-semibold text-heading ring-1 ring-line hover:bg-surface"
               >
                 All events
               </Link>

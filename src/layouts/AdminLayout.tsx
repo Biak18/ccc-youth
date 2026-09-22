@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import logo from '../assets/logo/church-logo.png'
 import { useAuth } from '../hooks/useAuth'
+import ThemeToggle from '../components/ThemeToggle'
 
 export default function AdminLayout() {
   const { profile, isAdmin, signOut } = useAuth()
@@ -41,23 +42,26 @@ export default function AdminLayout() {
           <img src={logo} alt="" className="h-8 w-auto" />
           <span className="text-sm font-bold text-white">CCC Youth Admin</span>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-label="Toggle admin menu"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-white hover:bg-white/10"
-        >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-            {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
-          </svg>
-        </button>
+        <div className="flex items-center gap-1">
+          <ThemeToggle className="text-white hover:bg-white/10" />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-label="Toggle admin menu"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-white hover:bg-white/10"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Sidebar */}
       <aside
         className={[
-          'bg-navy lg:flex lg:w-64 lg:shrink-0 lg:flex-col',
+          'bg-navy no-scrollbar lg:sticky lg:top-0 lg:flex lg:h-dvh lg:w-64 lg:shrink-0 lg:flex-col lg:overflow-y-auto',
           open ? 'block' : 'hidden',
         ].join(' ')}
       >
@@ -92,7 +96,7 @@ export default function AdminLayout() {
           <p className="text-xs uppercase tracking-wide text-white/50">
             {profile?.role ?? 'leader'}
           </p>
-          <div className="mt-3 flex flex-wrap gap-3 text-sm">
+          <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
             <Link to="/" className="font-semibold text-white/80 hover:text-white">
               View site
             </Link>
@@ -103,6 +107,7 @@ export default function AdminLayout() {
             >
               Sign out
             </button>
+            <ThemeToggle className="ml-auto text-white/80 hover:bg-white/10 hover:text-white" />
           </div>
         </div>
       </aside>

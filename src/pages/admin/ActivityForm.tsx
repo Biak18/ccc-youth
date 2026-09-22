@@ -233,7 +233,7 @@ export default function ActivityForm() {
           e.preventDefault()
           save('published')
         }}
-        className="space-y-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-line"
+        className="space-y-6 rounded-2xl bg-card p-6 shadow-sm ring-1 ring-line"
       >
         <FormError message={error} />
 

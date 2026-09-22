@@ -37,13 +37,13 @@ export default function Login() {
           <span className="block text-xs font-semibold uppercase tracking-wide text-muted">
             {site.churchName}
           </span>
-          <span className="block text-xl font-bold text-navy">Youth Admin</span>
+          <span className="block text-xl font-bold text-heading">Youth Admin</span>
         </span>
       </Link>
 
       <form
         onSubmit={submit}
-        className="mt-8 w-full max-w-sm space-y-4 rounded-2xl bg-white p-6 shadow-sm"
+        className="mt-8 w-full max-w-sm space-y-4 rounded-2xl bg-card p-6 shadow-sm"
       >
         <FormError message={error} />
         <Field label="Email" required>
@@ -74,7 +74,7 @@ export default function Login() {
         </p>
       </form>
 
-      <Link to="/" className="mt-6 text-sm font-semibold text-navy hover:text-brand-red">
+      <Link to="/" className="mt-6 text-sm font-semibold text-heading hover:text-brand-red">
         &larr; Back to the website
       </Link>
     </div>

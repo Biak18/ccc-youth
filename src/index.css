@@ -1,15 +1,43 @@
 @import "tailwindcss";
 
+/* Class-based dark mode: `.dark` on <html>, managed by ThemeProvider
+   (system preference by default, overridable, persisted). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
+  --font-sans: "Nunito", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
   --color-navy: #1F2F68;
   --color-navy-dark: #16234F;
   --color-brand-red: #ED1C24;
   --color-brand-red-dark: #C9161D;
   --color-skyblue: #3D9ACF;
+  --color-gold: #FFB81C;
+
+  /* Surfaces flip in dark mode; brand colors stay put. */
+  --color-page: #FFFFFF;
+  --color-card: #FFFFFF;
   --color-surface: #F7F8FC;
+
   --color-ink: #172033;
   --color-muted: #667085;
   --color-line: #E5E7EB;
+  --color-heading: #1F2F68;
+  --color-ember: #ED1C24;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --color-page: #0A112E;
+  --color-card: #16204C;
+  --color-surface: #0F1738;
+
+  --color-ink: #EAEFFF;
+  --color-muted: #9AA6CF;
+  --color-line: #2B3766;
+  --color-heading: #E9EEFF;
+  --color-ember: #FF7A7F;
 }
 
 html {
@@ -20,13 +48,30 @@ html {
 }
 
 body {
-  @apply bg-white text-ink antialiased;
+  @apply bg-page font-sans text-ink antialiased;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+::selection {
+  background: var(--color-brand-red);
+  color: #fff;
 }
 
 /* Visible focus states (UI-UX.md 15 - Accessibility) */
 :focus-visible {
   outline: 3px solid var(--color-skyblue);
   outline-offset: 2px;
+}
+
+/* Hide the scrollbar while keeping the element scrollable
+   (sticky admin sidebar). Do NOT use overflow-hidden here —
+   that would disable scrolling instead of just hiding the bar. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* Skill ui-ux-pro-max: honor reduced motion for scroll, transitions,

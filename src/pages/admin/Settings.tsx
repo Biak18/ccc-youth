@@ -107,7 +107,7 @@ export default function Settings() {
         subtitle="These values appear across the public website."
       />
 
-      <form onSubmit={save} className="space-y-6 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-line">
+      <form onSubmit={save} className="space-y-6 rounded-2xl bg-card p-6 shadow-sm ring-1 ring-line">
         <FormError message={error} />
         {saved && (
           <p className="rounded-lg bg-green-50 px-4 py-3 text-sm font-medium text-green-800">
@@ -181,14 +181,14 @@ export default function Settings() {
               {heroImages.map((url, i) => (
                 <li key={url} className="overflow-hidden rounded-lg ring-1 ring-line">
                   <img src={url} alt="" className="aspect-video w-full object-cover" />
-                  <div className="flex items-center justify-between gap-1 bg-white p-1.5">
+                  <div className="flex items-center justify-between gap-1 bg-card p-1.5">
                     <div className="flex gap-0.5">
                       <button
                         type="button"
                         onClick={() => moveHero(i, -1)}
                         disabled={i === 0}
                         aria-label="Move photo earlier"
-                        className="rounded px-1.5 py-1 text-xs text-navy hover:bg-surface disabled:opacity-30"
+                        className="rounded px-1.5 py-1 text-xs text-heading hover:bg-surface disabled:opacity-30"
                       >
                         &larr;
                       </button>
@@ -197,7 +197,7 @@ export default function Settings() {
                         onClick={() => moveHero(i, 1)}
                         disabled={i === heroImages.length - 1}
                         aria-label="Move photo later"
-                        className="rounded px-1.5 py-1 text-xs text-navy hover:bg-surface disabled:opacity-30"
+                        className="rounded px-1.5 py-1 text-xs text-heading hover:bg-surface disabled:opacity-30"
                       >
                         &rarr;
                       </button>

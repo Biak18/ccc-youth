@@ -76,7 +76,7 @@ export default function ActivityDetail() {
         )}
 
         <div className="mt-12">
-          <h2 className="mb-5 text-2xl font-bold text-navy">Photos</h2>
+          <h2 className="mb-5 text-2xl font-bold text-heading">Photos</h2>
           {media.loading ? (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {Array.from({ length: 8 }).map((_, i) => (
@@ -92,7 +92,7 @@ export default function ActivityDetail() {
 
         {videos.length > 0 && (
           <div className="mt-12">
-            <h2 className="mb-5 text-2xl font-bold text-navy">Videos</h2>
+            <h2 className="mb-5 text-2xl font-bold text-heading">Videos</h2>
             <div className="grid gap-6 md:grid-cols-2">
               {videos.map((v) => (
                 <VideoEmbed key={v.id} video={v} />
@@ -110,7 +110,7 @@ export default function ActivityDetail() {
           </Link>
           <Link
             to="/memories"
-            className="inline-flex rounded-lg px-5 py-3 text-sm font-semibold text-navy ring-1 ring-line hover:bg-surface"
+            className="inline-flex rounded-lg px-5 py-3 text-sm font-semibold text-heading ring-1 ring-line hover:bg-surface"
           >
             Youth Memories
           </Link>

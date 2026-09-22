@@ -44,7 +44,7 @@ export default function EventList() {
 
       <FormError message={error ?? actionError} />
 
-      <div className="mt-4 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-line">
+      <div className="mt-4 overflow-hidden rounded-xl bg-card shadow-sm ring-1 ring-line">
         {loading ? (
           <p className="px-5 py-8 text-center text-sm text-muted">Loading...</p>
         ) : data?.length ? (
@@ -54,7 +54,7 @@ export default function EventList() {
                 <div className="flex flex-wrap items-center gap-3">
                   <Link
                     to={`/admin/events/${e.id}/edit`}
-                    className="min-w-0 flex-1 truncate font-semibold text-navy hover:text-brand-red"
+                    className="min-w-0 flex-1 truncate font-semibold text-heading hover:text-brand-red"
                   >
                     {e.title}
                   </Link>

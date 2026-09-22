@@ -95,7 +95,7 @@ export default function VideoLinks({
             return (
               <li
                 key={r.key}
-                className="flex items-center gap-3 rounded-lg border border-line bg-white p-2"
+                className="flex items-center gap-3 rounded-lg border border-line bg-card p-2"
               >
                 <div className="h-12 w-20 shrink-0 overflow-hidden rounded bg-navy">
                   {thumb && <img src={thumb} alt="" className="h-full w-full object-cover" />}

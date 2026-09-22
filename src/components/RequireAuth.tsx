@@ -29,7 +29,7 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
   if (!isAdmin) {
     return (
       <div className="rounded-xl border border-brand-red/30 bg-brand-red/5 p-8 text-center">
-        <h1 className="text-lg font-bold text-navy">Admins only</h1>
+        <h1 className="text-lg font-bold text-heading">Admins only</h1>
         <p className="mt-2 text-sm text-muted">
           This page is limited to administrators.
         </p>

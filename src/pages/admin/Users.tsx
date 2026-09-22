@@ -33,8 +33,8 @@ export default function Users() {
 
       <FormError message={error ?? actionError} />
 
-      <div className="mb-6 rounded-xl bg-white p-5 text-sm text-ink/80 shadow-sm ring-1 ring-line">
-        <p className="font-semibold text-navy">Adding a Youth leader</p>
+      <div className="mb-6 rounded-xl bg-card p-5 text-sm text-ink/80 shadow-sm ring-1 ring-line">
+        <p className="font-semibold text-heading">Adding a Youth leader</p>
         <p className="mt-1">
           Supabase Dashboard &rarr; Authentication &rarr; Users &rarr; Add user. Tick
           &ldquo;Auto Confirm User&rdquo;, then share the password. Their account appears
@@ -42,7 +42,7 @@ export default function Users() {
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-line">
+      <div className="overflow-hidden rounded-xl bg-card shadow-sm ring-1 ring-line">
         {loading ? (
           <p className="px-5 py-8 text-center text-sm text-muted">Loading...</p>
         ) : data?.length ? (
@@ -53,7 +53,7 @@ export default function Users() {
               return (
                 <li key={u.id} className="flex flex-wrap items-center gap-4 px-5 py-4">
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold text-navy">
+                    <p className="truncate font-semibold text-heading">
                       {u.display_name ?? u.email}
                       {isSelf && <span className="ml-2 text-xs text-muted">(you)</span>}
                     </p>
@@ -64,7 +64,7 @@ export default function Users() {
                       'rounded px-2 py-0.5 text-xs font-bold uppercase tracking-wide',
                       u.role === 'admin'
                         ? 'bg-brand-red text-white'
-                        : 'bg-surface text-navy ring-1 ring-line',
+                        : 'bg-surface text-heading ring-1 ring-line',
                     ].join(' ')}
                   >
                     {u.role}
@@ -74,7 +74,7 @@ export default function Users() {
                     disabled={busy === u.id || lastAdmin}
                     title={lastAdmin ? 'There must be at least one admin' : undefined}
                     onClick={() => setRole(u.id, u.role === 'admin' ? 'leader' : 'admin')}
-                    className="text-sm font-semibold text-navy hover:text-brand-red disabled:opacity-40"
+                    className="text-sm font-semibold text-heading hover:text-ember disabled:opacity-40"
                   >
                     {u.role === 'admin' ? 'Make leader' : 'Make admin'}
                   </button>

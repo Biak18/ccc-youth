@@ -18,7 +18,7 @@ export default function LeaderCard({ leader }: { leader: YouthLeader }) {
           {leader.name.charAt(0)}
         </div>
       )}
-      <h3 className="mt-4 font-bold text-navy">{leader.name}</h3>
+      <h3 className="mt-4 font-bold text-heading">{leader.name}</h3>
       {leader.role_title && <p className="text-sm text-muted">{leader.role_title}</p>}
     </div>
   )

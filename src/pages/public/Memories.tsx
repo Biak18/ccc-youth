@@ -42,7 +42,7 @@ export default function Memories() {
                   <div key={year}>
                     <h2
                       id={`year-${year}`}
-                      className="mb-5 border-b border-line pb-2 text-2xl font-bold text-navy"
+                      className="mb-5 border-b border-line pb-2 text-2xl font-bold text-heading"
                     >
                       {year}
                       <span className="ml-3 text-sm font-medium text-muted">

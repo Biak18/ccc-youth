@@ -4,7 +4,7 @@ export const site = {
   churchName: 'Christian City Church',
   youthName: 'Youth',
   tagline: 'Growing Together in Faith & Fellowship',
-  facebookUrl: 'https://www.facebook.com/',
+  facebookUrl: 'https://www.facebook.com/share/1CERqmbhNK/',
   address: 'Yangon, Myanmar',
   phone: '',
   email: '',

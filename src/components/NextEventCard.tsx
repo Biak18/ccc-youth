@@ -5,19 +5,19 @@ import CoverImage from './CoverImage'
 
 export default function NextEventCard({ event }: { event: EventRow }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-line bg-white shadow-sm md:grid md:grid-cols-2">
-      <Link to={`/events/${event.slug}`} className="block md:h-full">
+    <article className="group overflow-hidden rounded-2xl border border-line bg-card shadow-sm transition duration-300 hover:shadow-xl md:grid md:grid-cols-2">
+      <Link to={`/events/${event.slug}`} className="block overflow-hidden md:h-full">
         <CoverImage
           src={event.cover_image_url}
           alt={event.title}
-          className="aspect-[16/10] md:h-full md:aspect-auto"
+          className="aspect-[16/10] transition duration-500 ease-out group-hover:scale-[1.04] md:h-full md:aspect-auto"
         />
       </Link>
       <div className="p-6 sm:p-8">
-        <span className="inline-flex rounded-full bg-brand-red/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand-red">
+        <span className="inline-flex rounded-full bg-gold/15 px-3 py-1 text-xs font-bold uppercase tracking-wide text-yellow-800 ring-1 ring-gold/40 dark:text-gold">
           Next Event
         </span>
-        <h3 className="mt-4 text-2xl font-bold text-navy sm:text-3xl">
+        <h3 className="mt-4 text-2xl font-bold text-heading sm:text-3xl">
           <Link to={`/events/${event.slug}`} className="hover:text-brand-red">
             {event.title}
           </Link>

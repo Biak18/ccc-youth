@@ -5,7 +5,7 @@ export default function AnnouncementCard({ item }: { item: Announcement }) {
   return (
     <article
       className={[
-        'rounded-xl border bg-white p-5 shadow-sm',
+        'rounded-2xl border bg-card p-5 shadow-sm',
         item.is_pinned ? 'border-brand-red/40 bg-brand-red/[0.03]' : 'border-line',
       ].join(' ')}
     >
@@ -21,7 +21,7 @@ export default function AnnouncementCard({ item }: { item: Announcement }) {
           </time>
         )}
       </div>
-      <h3 className="mt-2 text-lg font-bold text-navy">{item.title}</h3>
+      <h3 className="mt-2 text-lg font-bold text-heading">{item.title}</h3>
       {item.content && <p className="mt-2 whitespace-pre-line text-sm text-ink/80">{item.content}</p>}
     </article>
   )

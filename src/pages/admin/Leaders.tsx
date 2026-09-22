@@ -90,9 +90,9 @@ export default function Leaders() {
 
       <form
         onSubmit={save}
-        className="mb-8 space-y-5 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-line"
+        className="mb-8 space-y-5 rounded-2xl bg-card p-6 shadow-sm ring-1 ring-line"
       >
-        <h2 className="font-bold text-navy">{editingId ? 'Edit leader' : 'Add a leader'}</h2>
+        <h2 className="font-bold text-heading">{editingId ? 'Edit leader' : 'Add a leader'}</h2>
 
         <div className="grid gap-5 sm:grid-cols-2">
           <Field label="Name" required>
@@ -164,7 +164,7 @@ export default function Leaders() {
         </div>
       </form>
 
-      <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-line">
+      <div className="overflow-hidden rounded-xl bg-card shadow-sm ring-1 ring-line">
         {loading ? (
           <p className="px-5 py-8 text-center text-sm text-muted">Loading...</p>
         ) : data?.length ? (
@@ -177,7 +177,7 @@ export default function Leaders() {
                     onClick={() => move(i, -1)}
                     disabled={i === 0}
                     aria-label={`Move ${l.name} up`}
-                    className="px-1 text-navy hover:text-brand-red disabled:opacity-30"
+                    className="px-1 text-heading hover:text-brand-red disabled:opacity-30"
                   >
                     &uarr;
                   </button>
@@ -186,7 +186,7 @@ export default function Leaders() {
                     onClick={() => move(i, 1)}
                     disabled={i === (data?.length ?? 0) - 1}
                     aria-label={`Move ${l.name} down`}
-                    className="px-1 text-navy hover:text-brand-red disabled:opacity-30"
+                    className="px-1 text-heading hover:text-brand-red disabled:opacity-30"
                   >
                     &darr;
                   </button>
@@ -199,7 +199,7 @@ export default function Leaders() {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold text-navy">{l.name}</p>
+                  <p className="truncate font-semibold text-heading">{l.name}</p>
                   <p className="truncate text-sm text-muted">{l.role_title}</p>
                 </div>
                 {!l.is_visible && (
@@ -211,7 +211,7 @@ export default function Leaders() {
                   <button
                     type="button"
                     onClick={() => edit(l)}
-                    className="text-sm font-semibold text-navy hover:text-brand-red"
+                    className="text-sm font-semibold text-heading hover:text-brand-red"
                   >
                     Edit
                   </button>
@@ -225,7 +225,7 @@ export default function Leaders() {
                           .eq('id', l.id),
                       )
                     }
-                    className="text-sm font-semibold text-navy hover:text-brand-red"
+                    className="text-sm font-semibold text-heading hover:text-brand-red"
                   >
                     {l.is_visible ? 'Hide' : 'Show'}
                   </button>

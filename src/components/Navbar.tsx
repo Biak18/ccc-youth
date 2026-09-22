@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
 import logo from '../assets/logo/church-logo.png'
 import { site, navLinks } from '../site'
+import ThemeToggle from './ThemeToggle'
 
 export default function Navbar() {
   const [open, setOpen] = useState(false)
@@ -18,7 +19,7 @@ export default function Navbar() {
   }, [open ])
 
   return (
-    <header className="sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-50 border-b border-line bg-page/95 backdrop-blur">
       <nav
         className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3"
         aria-label="Main navigation"
@@ -29,7 +30,7 @@ export default function Navbar() {
             <span className="block text-[11px] font-semibold uppercase tracking-wide text-muted">
               {site.churchName}
             </span>
-            <span className="block text-lg font-bold text-navy">Youth</span>
+            <span className="block text-lg font-bold text-heading">Youth</span>
           </span>
         </Link>
 
@@ -43,14 +44,15 @@ export default function Navbar() {
                 [
                   'inline-flex min-h-11 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-brand-red/10 text-brand-red'
-                    : 'text-ink hover:bg-surface hover:text-navy',
+                    ? 'bg-brand-red/10 text-ember'
+                    : 'text-ink hover:bg-surface hover:text-heading',
                 ].join(' ')
               }
             >
               {l.label}
             </NavLink>
           ))}
+          <ThemeToggle className="text-heading hover:bg-surface" />
           <a
             href={site.facebookUrl}
             target="_blank"
@@ -61,14 +63,16 @@ export default function Navbar() {
           </a>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          aria-controls="mobile-menu"
-          aria-label="Toggle menu"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-navy hover:bg-surface lg:hidden"
-        >
+        <div className="flex items-center gap-1 lg:hidden">
+          <ThemeToggle className="text-heading hover:bg-surface" />
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            aria-label="Toggle menu"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-md text-heading hover:bg-surface"
+          >
           <svg
             width="24"
             height="24"
@@ -81,11 +85,12 @@ export default function Navbar() {
           >
             {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
           </svg>
-        </button>
+          </button>
+        </div>
       </nav>
 
       {open && (
-        <div id="mobile-menu" className="border-t border-line bg-white lg:hidden">
+        <div id="mobile-menu" className="border-t border-line bg-page lg:hidden">
           <div className="mx-auto max-w-6xl px-4 py-2">
             {navLinks.map((l) => (
               <NavLink
@@ -96,7 +101,7 @@ export default function Navbar() {
                 className={({ isActive }) =>
                   [
                     'block rounded-md px-3 py-3 text-base font-medium',
-                    isActive ? 'bg-surface text-brand-red' : 'text-ink hover:bg-surface',
+                    isActive ? 'bg-surface text-ember' : 'text-ink hover:bg-surface',
                   ].join(' ')
                 }
               >

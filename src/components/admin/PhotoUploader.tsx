@@ -87,7 +87,7 @@ export default function PhotoUploader({
       {(existing.length > 0 || pending.length > 0) && (
         <ul className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {existing.map((m, i) => (
-            <li key={m.id} className="overflow-hidden rounded-lg border border-line bg-white">
+            <li key={m.id} className="overflow-hidden rounded-lg border border-line bg-card">
               <img
                 src={m.thumbnail_url || m.url}
                 alt={m.title ?? 'Activity photo'}
@@ -100,7 +100,7 @@ export default function PhotoUploader({
                     onClick={() => onMoveExisting(i, -1)}
                     disabled={i === 0 || disabled}
                     aria-label="Move photo earlier"
-                    className="rounded px-1.5 py-1 text-xs text-navy hover:bg-surface disabled:opacity-30"
+                    className="rounded px-1.5 py-1 text-xs text-heading hover:bg-surface disabled:opacity-30"
                   >
                     &larr;
                   </button>
@@ -109,7 +109,7 @@ export default function PhotoUploader({
                     onClick={() => onMoveExisting(i, 1)}
                     disabled={i === existing.length - 1 || disabled}
                     aria-label="Move photo later"
-                    className="rounded px-1.5 py-1 text-xs text-navy hover:bg-surface disabled:opacity-30"
+                    className="rounded px-1.5 py-1 text-xs text-heading hover:bg-surface disabled:opacity-30"
                   >
                     &rarr;
                   </button>
@@ -131,7 +131,7 @@ export default function PhotoUploader({
                   'w-full px-2 py-1.5 text-xs font-bold uppercase tracking-wide',
                   coverUrl === m.url
                     ? 'bg-brand-red text-white'
-                    : 'bg-surface text-navy hover:bg-line',
+                    : 'bg-surface text-heading hover:bg-line',
                 ].join(' ')}
               >
                 {coverUrl === m.url ? 'Cover' : 'Make cover'}
@@ -142,7 +142,7 @@ export default function PhotoUploader({
           {pending.map((p) => (
             <li
               key={p.id}
-              className="overflow-hidden rounded-lg border border-dashed border-skyblue bg-white"
+              className="overflow-hidden rounded-lg border border-dashed border-skyblue bg-card"
             >
               <img src={p.preview} alt="" className="aspect-square w-full object-cover" />
               <div className="flex items-center justify-between p-1.5">

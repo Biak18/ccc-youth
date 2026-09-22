@@ -4,6 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1F2F68" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A112E" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <script>
+      // Apply the saved theme (or OS preference) before first paint.
+      try {
+        var t = localStorage.getItem('ccc-theme') || 'system'
+        if (t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark')
+        }
+      } catch (e) {}
+    </script>
 
     <title>Christian City Church Youth | Growing Together in Faith &amp; Fellowship</title>
     <meta

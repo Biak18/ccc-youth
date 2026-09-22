@@ -18,7 +18,7 @@ export default function Contact() {
       <Section>
         <div className="grid gap-10 md:grid-cols-2">
           <div>
-            <h2 className="text-xl font-bold text-navy">
+            <h2 className="text-xl font-bold text-heading">
               {data?.church_name ?? site.churchName}
             </h2>
             <dl className="mt-4 space-y-3 text-ink/85">
@@ -32,7 +32,7 @@ export default function Contact() {
                 <div>
                   <dt className="text-sm font-semibold text-muted">Phone</dt>
                   <dd>
-                    <a className="hover:text-navy" href={`tel:${phone}`}>
+                    <a className="hover:text-heading" href={`tel:${phone}`}>
                       {phone}
                     </a>
                   </dd>
@@ -42,7 +42,7 @@ export default function Contact() {
                 <div>
                   <dt className="text-sm font-semibold text-muted">Email</dt>
                   <dd>
-                    <a className="hover:text-navy" href={`mailto:${email}`}>
+                    <a className="hover:text-heading" href={`mailto:${email}`}>
                       {email}
                     </a>
                   </dd>
@@ -51,7 +51,7 @@ export default function Contact() {
             </dl>
           </div>
           <div className="rounded-xl bg-surface p-6">
-            <h2 className="text-xl font-bold text-navy">Follow us</h2>
+            <h2 className="text-xl font-bold text-heading">Follow us</h2>
             <p className="mt-2 text-ink/80">
               Our Facebook page has frequent updates and community posts.
             </p>
