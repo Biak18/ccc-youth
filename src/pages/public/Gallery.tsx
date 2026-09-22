@@ -1,4 +1,5 @@
 import PageHeader from '../../components/PageHeader'
+import Seo from '../../components/Seo'
 import Section from '../../components/Section'
 import SectionHeading from '../../components/SectionHeading'
 import PhotoGrid from '../../components/PhotoGrid'
@@ -12,6 +13,7 @@ export default function Gallery() {
 
   return (
     <>
+      <Seo title="Gallery" description="Photos and videos from Christian City Church Youth activities." />
       <PageHeader title="Gallery" subtitle="Photos and videos from our Youth activities." />
 
       <Section>

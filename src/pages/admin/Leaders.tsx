@@ -63,6 +63,19 @@ export default function Leaders() {
     }
   }
 
+  const move = async (index: number, dir: -1 | 1) => {
+    const rows = data ?? []
+    const target = index + dir
+    if (target < 0 || target >= rows.length) return
+    const a = rows[index]
+    const b = rows[target]
+    setActionError(null)
+    const r1 = await supabase.from('youth_leaders').update({ sort_order: target }).eq('id', a.id)
+    const r2 = await supabase.from('youth_leaders').update({ sort_order: index }).eq('id', b.id)
+    if (r1.error || r2.error) setActionError((r1.error ?? r2.error)!.message)
+    else reload()
+  }
+
   const run = async (fn: () => PromiseLike<{ error: { message: string } | null }>) => {
     const { error } = await fn()
     if (error) setActionError(error.message)
@@ -156,8 +169,28 @@ export default function Leaders() {
           <p className="px-5 py-8 text-center text-sm text-muted">Loading...</p>
         ) : data?.length ? (
           <ul className="divide-y divide-line">
-            {data.map((l) => (
+            {data.map((l, i) => (
               <li key={l.id} className="flex flex-wrap items-center gap-4 px-5 py-4">
+                <div className="flex flex-col">
+                  <button
+                    type="button"
+                    onClick={() => move(i, -1)}
+                    disabled={i === 0}
+                    aria-label={`Move ${l.name} up`}
+                    className="px-1 text-navy hover:text-brand-red disabled:opacity-30"
+                  >
+                    &uarr;
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => move(i, 1)}
+                    disabled={i === (data?.length ?? 0) - 1}
+                    aria-label={`Move ${l.name} down`}
+                    className="px-1 text-navy hover:text-brand-red disabled:opacity-30"
+                  >
+                    &darr;
+                  </button>
+                </div>
                 {l.photo_url ? (
                   <img src={l.photo_url} alt="" className="h-12 w-12 rounded-full object-cover" />
                 ) : (

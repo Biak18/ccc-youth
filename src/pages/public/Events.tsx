@@ -1,4 +1,5 @@
 import PageHeader from '../../components/PageHeader'
+import Seo from '../../components/Seo'
 import Section from '../../components/Section'
 import SectionHeading from '../../components/SectionHeading'
 import EventCard from '../../components/EventCard'
@@ -11,6 +12,10 @@ export default function Events() {
 
   return (
     <>
+      <Seo
+        title="Events"
+        description="Upcoming Christian City Church Youth gatherings, studies and special programmes."
+      />
       <PageHeader
         title="Events"
         subtitle="Upcoming Youth gatherings, studies and special programmes."

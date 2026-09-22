@@ -3,7 +3,9 @@ import type { Media } from '../types/db'
 import Lightbox, { type LightboxItem } from './Lightbox'
 
 /**
- * Responsive, lazy-loaded photo grid with lightbox preview.
+ * Responsive photo grid. Tiles load the 480px thumbnail and the
+ * lightbox loads the full-size image, so a page with 100 photos
+ * downloads a fraction of the bytes.
  */
 export default function PhotoGrid({
   photos,
@@ -35,6 +37,9 @@ export default function PhotoGrid({
                 src={p.thumbnail_url || p.url}
                 alt={p.title ?? `${altPrefix} photo ${i + 1}`}
                 loading="lazy"
+                decoding="async"
+                width={480}
+                height={480}
                 className="aspect-square w-full object-cover transition duration-300 group-hover:scale-[1.03]"
               />
             </button>

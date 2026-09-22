@@ -1,4 +1,5 @@
 import Hero from '../../components/Hero'
+import Seo from '../../components/Seo'
 import Section from '../../components/Section'
 import SectionHeading from '../../components/SectionHeading'
 import NextEventCard from '../../components/NextEventCard'
@@ -30,6 +31,10 @@ export default function Home() {
 
   return (
     <>
+      <Seo
+        title="Christian City Church Youth"
+        description="Growing Together in Faith & Fellowship. Events, activities, photos and memories of the Youth ministry of Christian City Church, Yangon."
+      />
       {/* 1. Hero */}
       <Hero />
 

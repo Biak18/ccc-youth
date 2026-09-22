@@ -9,6 +9,11 @@ export default function ActivityCard({ activity }: { activity: Activity }) {
       <Link to={`/activities/${activity.slug}`} className="block">
         <CoverImage src={activity.cover_image_url} alt={activity.title} />
         <div className="p-5">
+          {activity.category && (
+            <span className="mb-2 inline-flex rounded-full bg-surface px-2.5 py-0.5 text-xs font-semibold text-navy ring-1 ring-line">
+              {activity.category}
+            </span>
+          )}
           <h3 className="text-lg font-bold text-navy group-hover:text-brand-red">
             {activity.title}
           </h3>

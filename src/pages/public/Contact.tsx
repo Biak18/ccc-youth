@@ -1,4 +1,5 @@
 import PageHeader from '../../components/PageHeader'
+import Seo from '../../components/Seo'
 import Section from '../../components/Section'
 import { useSiteSettings } from '../../hooks/useContent'
 import { site } from '../../site'
@@ -12,6 +13,7 @@ export default function Contact() {
 
   return (
     <>
+      <Seo title="Contact" description="Get in touch with Christian City Church Youth in Yangon." />
       <PageHeader title="Contact" subtitle="We would love to hear from you." />
       <Section>
         <div className="grid gap-10 md:grid-cols-2">

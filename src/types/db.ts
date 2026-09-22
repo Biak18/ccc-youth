@@ -8,6 +8,7 @@ export type Activity = {
   slug: string
   description: string | null
   activity_date: string // YYYY-MM-DD - the real date the activity happened
+  category: string | null
   location: string | null
   cover_image_url: string | null
   status: Status

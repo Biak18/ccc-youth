@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import Section from '../../components/Section'
+import Seo from '../../components/Seo'
 import Breadcrumb from '../../components/Breadcrumb'
 import CoverImage from '../../components/CoverImage'
 import ArchivedBadge from '../../components/ArchivedBadge'
@@ -37,6 +38,12 @@ export default function EventDetail() {
 
   return (
     <>
+      <Seo
+        title={event.title}
+        description={event.description ?? `${event.title} at Christian City Church Youth.`}
+        image={event.cover_image_url}
+        type="article"
+      />
       <div className="bg-navy">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:py-14">
           <Breadcrumb parentLabel="Events" parentTo="/events" current={event.title} />

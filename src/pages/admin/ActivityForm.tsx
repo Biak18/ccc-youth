@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 import { useActivityById, useMediaByActivity } from '../../hooks/useAdminData'
 import { slugify } from '../../lib/format'
+import { CATEGORIES } from '../../lib/categories'
 import { deletePhotoFiles, uploadPhoto } from '../../lib/upload'
 import type { Media, Status } from '../../types/db'
 import PhotoUploader, { type PendingPhoto } from '../../components/admin/PhotoUploader'
@@ -32,6 +33,7 @@ export default function ActivityForm() {
   const [slugTouched, setSlugTouched] = useState(false)
   const [activityDate, setActivityDate] = useState('')
   const [location, setLocation] = useState('')
+  const [category, setCategory] = useState('')
   const [description, setDescription] = useState('')
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
 
@@ -52,6 +54,7 @@ export default function ActivityForm() {
     setSlug(a.slug)
     setActivityDate(a.activity_date)
     setLocation(a.location ?? '')
+    setCategory(a.category ?? '')
     setDescription(a.description ?? '')
     setCoverUrl(a.cover_image_url)
   }, [existingActivity.data])
@@ -127,6 +130,7 @@ export default function ActivityForm() {
       description: description.trim() || null,
       activity_date: activityDate,
       location: location.trim() || null,
+      category: category || null,
       status,
     }
 
@@ -262,6 +266,21 @@ export default function ActivityForm() {
             />
           </Field>
         </div>
+
+        <Field label="Category" hint="Used for filtering on the Memories page.">
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className={inputClass}
+          >
+            <option value="">No category</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </select>
+        </Field>
 
         <Field label="Web address" hint={`/activities/${slug || 'your-title'}`}>
           <input

@@ -1,4 +1,5 @@
 import PageHeader from '../../components/PageHeader'
+import Seo from '../../components/Seo'
 import Section from '../../components/Section'
 import SectionHeading from '../../components/SectionHeading'
 import LeaderCard from '../../components/LeaderCard'
@@ -12,6 +13,7 @@ export default function About() {
 
   return (
     <>
+      <Seo title="About Our Youth" description="The Youth ministry of Christian City Church, Yangon." />
       <PageHeader title="About Our Youth" subtitle={data?.tagline ?? site.tagline} />
       <Section>
         <div className="max-w-3xl space-y-4 text-lg text-ink/85">

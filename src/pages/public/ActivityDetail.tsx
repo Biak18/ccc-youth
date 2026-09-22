@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import Section from '../../components/Section'
+import Seo from '../../components/Seo'
 import PhotoGrid from '../../components/PhotoGrid'
 import VideoEmbed from '../../components/VideoEmbed'
 import Breadcrumb from '../../components/Breadcrumb'
@@ -39,6 +40,12 @@ export default function ActivityDetail() {
 
   return (
     <>
+      <Seo
+        title={activity.title}
+        description={activity.description ?? `Photos from ${activity.title}.`}
+        image={activity.cover_image_url}
+        type="article"
+      />
       <div className="bg-navy">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:py-14">
           <Breadcrumb parentLabel="Activities" parentTo="/activities" current={activity.title} />

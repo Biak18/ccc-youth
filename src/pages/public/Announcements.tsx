@@ -1,4 +1,5 @@
 import PageHeader from '../../components/PageHeader'
+import Seo from '../../components/Seo'
 import Section from '../../components/Section'
 import AnnouncementCard from '../../components/AnnouncementCard'
 import { EmptyState, ErrorState } from '../../components/States'
@@ -9,6 +10,7 @@ export default function Announcements() {
 
   return (
     <>
+      <Seo title="Announcements" description="Notices and updates for Christian City Church Youth." />
       <PageHeader title="Announcements" subtitle="What you need to know." />
       <Section>
         {error ? (

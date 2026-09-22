@@ -16,6 +16,7 @@ export default function AdminLayout() {
     ...(isAdmin
       ? [
           { to: '/admin/leaders', label: 'Youth Leaders' },
+          { to: '/admin/users', label: 'Users' },
           { to: '/admin/settings', label: 'Site Settings' },
         ]
       : []),

@@ -1,43 +1,32 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { inList, restQuery, type RestResult } from '../lib/rest'
 import type {
   Activity,
-  Status,
   Announcement,
   EventRow,
   Media,
   SiteSettings,
+  Status,
   YouthLeader,
 } from '../types/db'
 
 type Result<T> = { data: T | null; loading: boolean; error: string | null }
 
 /**
- * Tiny fetch hook.
- *
  * Listing queries use status = 'published' so drafts never reach the
  * public site. Detail and archive queries also allow 'archived', which
  * stays readable for historical browsing but is kept out of the
  * current/featured sections.
  *
  * RLS enforces all of this again on the server.
- *
- * Phase 8: swap for TanStack Query to get caching for free.
  */
-export function useQuery<T>(
-  run: () => PromiseLike<{ data: T | null; error: { message: string } | null }>,
-  deps: unknown[] = [],
-): Result<T> {
-  const [state, setState] = useState<Result<T>>({
-    data: null,
-    loading: true,
-    error: null,
-  })
+export function useQuery<T>(run: () => Promise<RestResult<T>>, deps: unknown[] = []): Result<T> {
+  const [state, setState] = useState<Result<T>>({ data: null, loading: true, error: null })
 
   useEffect(() => {
     let active = true
     setState((s) => ({ ...s, loading: true }))
-    Promise.resolve(run()).then(({ data, error }) => {
+    run().then(({ data, error }) => {
       if (!active) return
       setState({ data: data ?? null, loading: false, error: error?.message ?? null })
     })
@@ -50,50 +39,46 @@ export function useQuery<T>(
   return state
 }
 
-const PUBLIC_STATUSES: Status[] = ['published', 'archived']
+const PUBLIC: Status[] = ['published', 'archived']
+const nowIso = () => new Date().toISOString()
 
 /* ---------------------------------------------------------------- lists */
 
 export const useSiteSettings = () =>
   useQuery<SiteSettings>(() =>
-    supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
+    restQuery('site_settings', { filters: { id: 'eq.1' }, single: true }),
   )
 
 export const useUpcomingEvents = (limit = 12) =>
   useQuery<EventRow[]>(
     () =>
-      supabase
-        .from('events')
-        .select('*')
-        .eq('status', 'published')
-        .gte('start_date', new Date().toISOString())
-        .order('start_date', { ascending: true })
-        .limit(limit),
+      restQuery('events', {
+        filters: { status: 'eq.published', start_date: `gte.${nowIso()}` },
+        order: 'start_date.asc',
+        limit,
+      }),
     [limit],
   )
 
 export const usePastEvents = (limit = 12) =>
   useQuery<EventRow[]>(
     () =>
-      supabase
-        .from('events')
-        .select('*')
-        .in('status', PUBLIC_STATUSES)
-        .lt('start_date', new Date().toISOString())
-        .order('start_date', { ascending: false })
-        .limit(limit),
+      restQuery('events', {
+        filters: { status: inList(PUBLIC), start_date: `lt.${nowIso()}` },
+        order: 'start_date.desc',
+        limit,
+      }),
     [limit],
   )
 
 export const useActivities = (limit = 24) =>
   useQuery<Activity[]>(
     () =>
-      supabase
-        .from('activities')
-        .select('*')
-        .eq('status', 'published')
-        .order('activity_date', { ascending: false })
-        .limit(limit),
+      restQuery('activities', {
+        filters: { status: 'eq.published' },
+        order: 'activity_date.desc',
+        limit,
+      }),
     [limit],
   )
 
@@ -101,46 +86,41 @@ export const useActivities = (limit = 24) =>
 export const useArchive = (limit = 200) =>
   useQuery<Activity[]>(
     () =>
-      supabase
-        .from('activities')
-        .select('*')
-        .in('status', PUBLIC_STATUSES)
-        .order('activity_date', { ascending: false })
-        .limit(limit),
+      restQuery('activities', {
+        filters: { status: inList(PUBLIC) },
+        order: 'activity_date.desc',
+        limit,
+      }),
     [limit],
   )
 
 export const useAnnouncements = (limit = 20) =>
   useQuery<Announcement[]>(
     () =>
-      supabase
-        .from('announcements')
-        .select('*')
-        .eq('status', 'published')
-        .order('is_pinned', { ascending: false })
-        .order('published_at', { ascending: false })
-        .limit(limit),
+      restQuery('announcements', {
+        filters: { status: 'eq.published' },
+        order: 'is_pinned.desc,published_at.desc',
+        limit,
+      }),
     [limit],
   )
 
 export const useLeaders = () =>
   useQuery<YouthLeader[]>(() =>
-    supabase
-      .from('youth_leaders')
-      .select('*')
-      .eq('is_visible', true)
-      .order('sort_order', { ascending: true }),
+    restQuery('youth_leaders', {
+      filters: { is_visible: 'eq.true' },
+      order: 'sort_order.asc',
+    }),
   )
 
 export const useLatestVideos = (limit = 3) =>
   useQuery<Media[]>(
     () =>
-      supabase
-        .from('media')
-        .select('*')
-        .eq('type', 'video')
-        .order('created_at', { ascending: false })
-        .limit(limit),
+      restQuery('media', {
+        filters: { type: 'eq.video' },
+        order: 'created_at.desc',
+        limit,
+      }),
     [limit],
   )
 
@@ -149,24 +129,20 @@ export const useLatestVideos = (limit = 3) =>
 export const useActivityBySlug = (slug?: string) =>
   useQuery<Activity>(
     () =>
-      supabase
-        .from('activities')
-        .select('*')
-        .eq('slug', slug ?? '')
-        .in('status', PUBLIC_STATUSES)
-        .maybeSingle(),
+      restQuery('activities', {
+        filters: { slug: `eq.${slug ?? ''}`, status: inList(PUBLIC) },
+        single: true,
+      }),
     [slug],
   )
 
 export const useEventBySlug = (slug?: string) =>
   useQuery<EventRow>(
     () =>
-      supabase
-        .from('events')
-        .select('*')
-        .eq('slug', slug ?? '')
-        .in('status', PUBLIC_STATUSES)
-        .maybeSingle(),
+      restQuery('events', {
+        filters: { slug: `eq.${slug ?? ''}`, status: inList(PUBLIC) },
+        single: true,
+      }),
     [slug],
   )
 
@@ -174,12 +150,12 @@ export const useEventBySlug = (slug?: string) =>
 export const useActivityMedia = (activityId?: string) =>
   useQuery<Media[]>(
     () =>
-      supabase
-        .from('media')
-        .select('*')
-        .eq('activity_id', activityId ?? '')
-        .order('sort_order', { ascending: true })
-        .order('created_at', { ascending: true }),
+      activityId
+        ? restQuery<Media[]>('media', {
+            filters: { activity_id: `eq.${activityId}` },
+            order: 'sort_order.asc,created_at.asc',
+          })
+        : Promise.resolve({ data: [], error: null }),
     [activityId],
   )
 
@@ -192,12 +168,11 @@ export const useActivityMedia = (activityId?: string) =>
 export const useAllImages = (limit = 300) =>
   useQuery<Media[]>(
     () =>
-      supabase
-        .from('media')
-        .select('*')
-        .eq('type', 'image')
-        .order('created_at', { ascending: false })
-        .limit(limit),
+      restQuery('media', {
+        filters: { type: 'eq.image' },
+        order: 'created_at.desc',
+        limit,
+      }),
     [limit],
   )
 
