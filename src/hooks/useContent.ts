@@ -146,6 +146,16 @@ export const useEventBySlug = (slug?: string) =>
     [slug],
   )
 
+export const useAnnouncementBySlug = (slug?: string) =>
+  useQuery<Announcement>(
+    () =>
+      restQuery('announcements', {
+        filters: { slug: `eq.${slug ?? ''}`, status: 'eq.published' },
+        single: true,
+      }),
+    [slug],
+  )
+
 /** All media for one activity, in the order leaders arranged it. */
 export const useActivityMedia = (activityId?: string) =>
   useQuery<Media[]>(

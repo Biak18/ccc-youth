@@ -18,6 +18,7 @@ const Activities = lazy(() => import('./pages/public/Activities'))
 const ActivityDetail = lazy(() => import('./pages/public/ActivityDetail'))
 const Memories = lazy(() => import('./pages/public/Memories'))
 const Announcements = lazy(() => import('./pages/public/Announcements'))
+const AnnouncementDetail = lazy(() => import('./pages/public/AnnouncementDetail'))
 const Gallery = lazy(() => import('./pages/public/Gallery'))
 const Contact = lazy(() => import('./pages/public/Contact'))
 const NotFound = lazy(() => import('./pages/public/NotFound'))
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="activities/:slug" element={<ActivityDetail />} />
           <Route path="memories" element={<Memories />} />
           <Route path="announcements" element={<Announcements />} />
+          <Route path="announcements/:slug" element={<AnnouncementDetail />} />
           <Route path="gallery" element={<Gallery />} />
           <Route path="contact" element={<Contact />} />
           <Route path="*" element={<NotFound />} />
