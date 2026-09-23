@@ -14,7 +14,7 @@ const readEnv = () => {
   const out = { ...process.env }
   try {
     for (const line of readFileSync('.env.local', 'utf8').split('\n')) {
-      const m = line.match(/^([A-Z0-9_]+)=(.*)$/)
+      const m = line.match(/^([A-Z0-9_]+)=(.*?)\r?$/)
       if (m) out[m[1]] ??= m[2].trim()
     }
   } catch {
@@ -25,7 +25,12 @@ const readEnv = () => {
 
 const env = readEnv()
 const SITE = (env.SITE_URL ?? 'https://example.com').replace(/\/$/, '')
-const supabase = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY)
+const SB_URL = (env.VITE_SUPABASE_URL ?? '').replace(/\/$/, '')
+const SB_KEY = env.VITE_SUPABASE_ANON_KEY ?? ''
+if (!SB_URL || !SB_KEY) {
+  console.error('Sitemap: VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are required.')
+  process.exit(1)
+}
 
 const staticPaths = [
   ['/', '1.0', 'weekly'],
@@ -38,13 +43,22 @@ const staticPaths = [
   ['/contact', '0.5', 'yearly'],
 ]
 
+const get = async (table, params) => {
+  const res = await fetch(
+    `${SB_URL}/rest/v1/${table}?select=slug,updated_at&${params}`,
+    { headers: { apikey: SB_KEY } },
+  )
+  if (!res.ok) throw new Error(`${table} -> HTTP ${res.status}`)
+  return res.json()
+}
+
 const [activities, events] = await Promise.all([
-  supabase.from('activities').select('slug, updated_at').in('status', ['published', 'archived']),
-  supabase.from('events').select('slug, updated_at').in('status', ['published', 'archived']),
+  get('activities', 'status=in.(published,archived)'),
+  get('events', 'status=in.(published,archived)'),
 ])
 
-if (activities.error || events.error) {
-  console.error('Sitemap: could not read content -', (activities.error ?? events.error).message)
+if (!Array.isArray(activities) || !Array.isArray(events)) {
+  console.error('Sitemap: unexpected response shape.')
   process.exit(1)
 }
 
@@ -55,8 +69,8 @@ const url = (loc, priority, changefreq, lastmod) =>
 
 const body = [
   ...staticPaths.map(([p, pr, cf]) => url(p, pr, cf)),
-  ...activities.data.map((a) => url(`/activities/${a.slug}`, '0.8', 'monthly', a.updated_at)),
-  ...events.data.map((e) => url(`/events/${e.slug}`, '0.8', 'monthly', e.updated_at)),
+  ...activities.map((a) => url(`/activities/${a.slug}`, '0.8', 'monthly', a.updated_at)),
+  ...events.map((e) => url(`/events/${e.slug}`, '0.8', 'monthly', e.updated_at)),
 ].join('\n')
 
 writeFileSync(
@@ -70,5 +84,5 @@ writeFileSync(
 )
 
 console.log(
-  `Sitemap: ${staticPaths.length + activities.data.length + events.data.length} URLs written.`,
+  `Sitemap: ${staticPaths.length + activities.length + events.length} URLs written.`,
 )
