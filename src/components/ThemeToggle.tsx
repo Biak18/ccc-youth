@@ -3,14 +3,39 @@ import { useTheme } from '../hooks/useTheme'
 /**
  * Cycles system -> light -> dark. 44px touch target per
  * ui-ux-pro-max touch guidance; icon shows the active mode.
+ *
+ * The switch runs inside a View Transition so the new theme sweeps in
+ * with a circular reveal from the clicked button (see index.css).
+ * Falls back to an instant switch where the API is missing (older
+ * browsers) or the user prefers reduced motion.
  */
 export default function ThemeToggle({ className = '' }: { className?: string }) {
   const { theme, cycle } = useTheme()
 
+  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    // Keyboard activation reports 0,0 — use the button center instead.
+    const rect = e.currentTarget.getBoundingClientRect()
+    const x = e.clientX || rect.left + rect.width / 2
+    const y = e.clientY || rect.top + rect.height / 2
+    const root = document.documentElement
+    root.style.setProperty('--tx', `${x}px`)
+    root.style.setProperty('--ty', `${y}px`)
+
+    const start = (
+      document as Document & {
+        startViewTransition?: (update: () => void) => void
+      }
+    ).startViewTransition
+    const reduceMotion =
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+    if (start && !reduceMotion) start.call(document, cycle)
+    else cycle()
+  }
+
   return (
     <button
       type="button"
-      onClick={cycle}
+      onClick={onClick}
       aria-label={`Color theme: ${theme}. Activate to change.`}
       title={`Theme: ${theme}`}
       className={`inline-flex h-11 w-11 items-center justify-center rounded-md transition-colors ${className}`}
