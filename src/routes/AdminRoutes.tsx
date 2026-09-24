@@ -18,7 +18,8 @@ import Settings from '../pages/admin/Settings'
  *
  * Everything that needs the backend auth token - login state, uploads
  * and writes - lives behind this boundary, so a visitor reading the
- * public site never downloads it.
+ * public site never downloads it. Data caching comes from the shared
+ * QueryClient provided at the app root (src/lib/query.ts).
  */
 export default function AdminRoutes() {
   return (

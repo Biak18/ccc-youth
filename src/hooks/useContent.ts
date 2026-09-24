@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useQuery as useTanStackQuery, type QueryKey } from '@tanstack/react-query'
 import { ApiError, apiFetch, apiGetPaged, type Paged } from '../lib/api'
 import type {
   Activity,
@@ -14,30 +14,20 @@ type Result<T> = { data: T | null; loading: boolean; error: string | null }
 /**
  * Public reads go to the backend with no auth header; anonymous
  * callers only ever see published content.
+ *
+ * Backed by TanStack Query: navbar/route switches within the
+ * `staleTime` window render instant cached data instead of refetching
+ * on every mount. Same `{ data, loading, error }` shape as before.
  */
-export function useQuery<T>(run: () => Promise<T | null>, deps: unknown[] = []): Result<T> {
-  const [state, setState] = useState<Result<T>>({ data: null, loading: true, error: null })
-
-  useEffect(() => {
-    let active = true
-    setState((s) => ({ ...s, loading: true }))
-    run().then(
-      (data) => {
-        if (!active) return
-        setState({ data: data ?? null, loading: false, error: null })
-      },
-      (e) => {
-        if (!active) return
-        setState({ data: null, loading: false, error: (e as Error).message })
-      },
-    )
-    return () => {
-      active = false
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps)
-
-  return state
+export function useQuery<T>(key: QueryKey, run: () => Promise<T | null>): Result<T> {
+  const query = useTanStackQuery({ queryKey: key, queryFn: run })
+  return {
+    data: query.data ?? null,
+    // Pending only when there is no data yet: skeletons show on first
+    // load, never when switching back to a cached page.
+    loading: query.isPending,
+    error: query.error ? (query.error as Error).message : null,
+  }
 }
 
 /** A 404 on a slug lookup is an empty result, not an error. */
@@ -53,24 +43,24 @@ async function bySlug<T>(path: string): Promise<T | null> {
 /* ---------------------------------------------------------------- lists */
 
 export const useSiteSettings = () =>
-  useQuery<SiteSettings>(() => apiFetch<SiteSettings>('/api/settings'))
+  useQuery<SiteSettings>(['site-settings'], () => apiFetch<SiteSettings>('/api/settings'))
 
 export const useUpcomingEvents = (limit = 12) =>
   useQuery<EventRow[]>(
+    ['events', 'upcoming', limit],
     () => apiGetPaged<EventRow>(`/api/events?filter=upcoming&pageSize=${limit}`),
-    [limit],
   )
 
 export const usePastEvents = (limit = 12) =>
   useQuery<EventRow[]>(
+    ['events', 'past', limit],
     () => apiGetPaged<EventRow>(`/api/events?filter=past&pageSize=${limit}`),
-    [limit],
   )
 
 export const useActivities = (limit = 24) =>
   useQuery<Activity[]>(
+    ['activities', limit],
     () => apiGetPaged<Activity>(`/api/activities?pageSize=${limit}`),
-    [limit],
   )
 
 /**
@@ -79,7 +69,7 @@ export const useActivities = (limit = 24) =>
  * fetched and merged client-side.
  */
 export const useArchive = (limit = 200) =>
-  useQuery<Activity[]>(async () => {
+  useQuery<Activity[]>(['activities', 'archive', limit], async () => {
     const [published, archived] = await Promise.all([
       apiFetch<Paged<Activity>>(`/api/activities?pageSize=${limit}`),
       apiFetch<Paged<Activity>>(`/api/activities?status=archived&pageSize=${limit}`),
@@ -88,61 +78,55 @@ export const useArchive = (limit = 200) =>
     return [...published.items, ...archived.items]
       .filter((a) => (seen.has(a.id) ? false : (seen.add(a.id), true)))
       .sort((a, b) => b.activityDate.localeCompare(a.activityDate))
-  }, [limit])
+  })
 
 export const useAnnouncements = (limit = 20) =>
   useQuery<Announcement[]>(
+    ['announcements', limit],
     () => apiGetPaged<Announcement>(`/api/announcements?pageSize=${limit}`),
-    [limit],
   )
 
 export const useLeaders = () =>
-  useQuery<YouthLeader[]>(() => apiFetch<YouthLeader[]>('/api/leaders'))
+  useQuery<YouthLeader[]>(['leaders'], () => apiFetch<YouthLeader[]>('/api/leaders'))
 
 export const useLatestVideos = (limit = 3) =>
   useQuery<Media[]>(
+    ['media', 'videos', limit],
     () => apiGetPaged<Media>(`/api/media?type=video&pageSize=${limit}`),
-    [limit],
   )
 
 /* --------------------------------------------------------------- detail */
 
 export const useActivityBySlug = (slug?: string) =>
-  useQuery<Activity>(
-    () => (slug ? bySlug<Activity>(`/api/activities/slug/${slug}`) : Promise.resolve(null)),
-    [slug],
+  useQuery<Activity>(['activity', slug ?? null], () =>
+    slug ? bySlug<Activity>(`/api/activities/slug/${slug}`) : Promise.resolve(null),
   )
 
 export const useEventBySlug = (slug?: string) =>
-  useQuery<EventRow>(
-    () => (slug ? bySlug<EventRow>(`/api/events/slug/${slug}`) : Promise.resolve(null)),
-    [slug],
+  useQuery<EventRow>(['event', slug ?? null], () =>
+    slug ? bySlug<EventRow>(`/api/events/slug/${slug}`) : Promise.resolve(null),
   )
 
 export const useAnnouncementBySlug = (slug?: string) =>
-  useQuery<Announcement>(
-    () =>
-      slug
-        ? bySlug<Announcement>(`/api/announcements/slug/${slug}`)
-        : Promise.resolve(null),
-    [slug],
+  useQuery<Announcement>(['announcement', slug ?? null], () =>
+    slug
+      ? bySlug<Announcement>(`/api/announcements/slug/${slug}`)
+      : Promise.resolve(null),
   )
 
 /** All media for one activity, in the order leaders arranged it. */
 export const useActivityMedia = (activityId?: string) =>
-  useQuery<Media[]>(
-    () =>
-      activityId
-        ? apiFetch<Media[]>(`/api/activities/${activityId}/media`)
-        : Promise.resolve([]),
-    [activityId],
+  useQuery<Media[]>(['activity-media', activityId ?? null], () =>
+    activityId
+      ? apiFetch<Media[]>(`/api/activities/${activityId}/media`)
+      : Promise.resolve([]),
   )
 
 /** Every public image, for the Gallery page. */
 export const useAllImages = (limit = 300) =>
   useQuery<Media[]>(
+    ['media', 'images', limit],
     () => apiGetPaged<Media>(`/api/media?type=image&pageSize=${limit}`),
-    [limit],
   )
 
 /* --------------------------------------------------------------- helpers */

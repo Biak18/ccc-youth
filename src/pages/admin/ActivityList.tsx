@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { authedDelete, authedPatch } from '../../lib/api'
+import ConfirmDialog from '../../components/admin/ConfirmDialog'
 import { useAllActivities } from '../../hooks/useAdminData'
 import { formatShort } from '../../lib/format'
 import type { Status } from '../../types/db'
@@ -16,11 +17,14 @@ import {
 const FILTERS: (Status | 'all')[] = ['all', 'draft', 'published', 'archived']
 
 export default function ActivityList() {
-  const { data, loading, error, reload } = useAllActivities()
+  const { data, loading, error, reload, setData } = useAllActivities()
   const [params, setParams] = useSearchParams()
   const [search, setSearch] = useState('')
   const [busy, setBusy] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(
+    null,
+  )
 
   const filter = (params.get('status') as Status | 'all') ?? 'all'
   const rows = (data ?? [])
@@ -40,17 +44,20 @@ export default function ActivityList() {
     }
   }
 
-  const remove = async (id: string, title: string) => {
-    if (!window.confirm(`Delete "${title}"? Its photos and videos will be removed too.`)) return
-    setBusy(id)
-    setActionError(null)
+  const remove = async () => {
+    if (!pendingDelete) return
+    const id = pendingDelete.id
+    const snapshot = data ?? []
+    // Optimistic: drop the row instantly, sync in the background.
+    // On failure (e.g. 403 on someone else's content) put it back.
+    setPendingDelete(null)
+    setData(snapshot.filter((a) => a.id !== id))
     try {
       await authedDelete(`/api/activities/${id}`)
       reload()
     } catch (e) {
+      setData(snapshot)
       setActionError((e as Error).message)
-    } finally {
-      setBusy(null)
     }
   }
 
@@ -151,7 +158,7 @@ export default function ActivityList() {
                   <button
                     type="button"
                     disabled={busy === a.id}
-                    onClick={() => remove(a.id, a.title)}
+                    onClick={() => setPendingDelete({ id: a.id, title: a.title })}
                     className="text-sm font-semibold text-brand-red hover:underline disabled:opacity-50"
                   >
                     Delete
@@ -164,6 +171,15 @@ export default function ActivityList() {
           <p className="px-5 py-8 text-center text-sm text-muted">Nothing here yet.</p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={pendingDelete ? `Delete "${pendingDelete.title}"?` : ''}
+        message="Its photos and videos will be removed too."
+        busy={busy !== null}
+        onConfirm={remove}
+        onCancel={() => setPendingDelete(null)}
+      />
     </>
   )
 }

@@ -115,19 +115,22 @@ function tryRefresh(): Promise<boolean> {
 }
 
 export async function apiFetch<T>(path: string, opts: FetchOpts = {}): Promise<T> {
-  const { auth = false, retry = true, headers, ...init } = opts
+  const { auth = false, retry = true, headers, body, ...init } = opts
+
+  // Only send a Content-Type when there is actually a body. A
+  // `Content-Type: application/json` on a bodyless GET is not
+  // CORS-safelisted and forces the browser to preflight every read.
+  const hasBody = body !== undefined && !(body instanceof FormData)
+  const baseHeaders: Record<string, string> = {
+    ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
+    ...((headers ?? {}) as Record<string, string>),
+    ...(auth && tokenStore.getAccess()
+      ? { Authorization: `Bearer ${tokenStore.getAccess()}` }
+      : {}),
+  }
 
   const run = async (): Promise<Response> =>
-    fetch(`${API_BASE}${path}`, {
-      ...init,
-      headers: {
-        ...(init.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-        ...(headers ?? {}),
-        ...(auth && tokenStore.getAccess()
-          ? { Authorization: `Bearer ${tokenStore.getAccess()}` }
-          : {}),
-      },
-    })
+    fetch(`${API_BASE}${path}`, { ...init, body, headers: baseHeaders })
 
   let res = await run()
 
@@ -136,11 +139,8 @@ export async function apiFetch<T>(path: string, opts: FetchOpts = {}): Promise<T
     if (ok) {
       res = await fetch(`${API_BASE}${path}`, {
         ...init,
-        headers: {
-          ...(init.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-          ...(headers ?? {}),
-          Authorization: `Bearer ${tokenStore.getAccess()}`,
-        },
+        body,
+        headers: { ...baseHeaders, Authorization: `Bearer ${tokenStore.getAccess()}` },
       })
     }
   }

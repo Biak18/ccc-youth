@@ -27,6 +27,7 @@ import {
   btnSecondary,
   inputClass,
 } from "../../components/admin/AdminUI";
+import ConfirmDialog from "../../components/admin/ConfirmDialog";
 import { youtubeId } from "../../lib/format";
 
 export default function ActivityForm() {
@@ -55,6 +56,7 @@ export default function ActivityForm() {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [photoToRemove, setPhotoToRemove] = useState<Media | null>(null);
 
   // Load the record when editing
   useEffect(() => {
@@ -105,16 +107,25 @@ export default function ActivityForm() {
     });
   };
 
-  const removeExistingPhoto = async (m: Media) => {
-    if (!window.confirm("Remove this photo?")) return;
+  const removeExistingPhoto = async () => {
+    const m = photoToRemove;
+    if (!m) return;
+    // Optimistic: drop the thumbnail instantly, sync in the background.
+    setPhotoToRemove(null);
+    setPhotos((prev) => prev.filter((p) => p.id !== m.id));
+    if (coverUrl === m.url) setCoverUrl(null);
     try {
       await authedDelete(`/api/media/${m.id}`);
     } catch (e) {
+      // Put it back so the user can retry.
+      setPhotos((prev) => {
+        const next = [...prev, m];
+        next.sort((a, b) => a.sortOrder - b.sortOrder);
+        return next;
+      });
+      if (coverUrl === m.url) setCoverUrl(m.url);
       setError((e as Error).message);
-      return;
     }
-    setPhotos((prev) => prev.filter((p) => p.id !== m.id));
-    if (coverUrl === m.url) setCoverUrl(null);
   };
 
   const removeExistingVideo = async (m: Media) => {
@@ -350,7 +361,7 @@ export default function ActivityForm() {
             onRemovePending={(pid) =>
               setPendingPhotos((prev) => prev.filter((p) => p.id !== pid))
             }
-            onRemoveExisting={removeExistingPhoto}
+            onRemoveExisting={(m) => setPhotoToRemove(m)}
             onMoveExisting={movePhoto}
             onSetCover={setCoverUrl}
             disabled={busy}
@@ -401,6 +412,13 @@ export default function ActivityForm() {
           </button>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={photoToRemove !== null}
+        title="Remove this photo?"
+        onConfirm={removeExistingPhoto}
+        onCancel={() => setPhotoToRemove(null)}
+      />
     </>
   );
 }

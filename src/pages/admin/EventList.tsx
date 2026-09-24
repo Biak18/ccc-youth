@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { authedDelete, authedPatch } from '../../lib/api'
+import ConfirmDialog from '../../components/admin/ConfirmDialog'
 import { useAllEvents } from '../../hooks/useAdminData'
 import { formatShort, isUpcoming } from '../../lib/format'
 import type { Status } from '../../types/db'
@@ -13,9 +14,12 @@ import {
 } from '../../components/admin/AdminUI'
 
 export default function EventList() {
-  const { data, loading, error, reload } = useAllEvents()
+  const { data, loading, error, reload, setData } = useAllEvents()
   const [busy, setBusy] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(
+    null,
+  )
 
   const act = async (fn: () => Promise<unknown>, id: string) => {
     setBusy(id)
@@ -33,9 +37,19 @@ export default function EventList() {
   const setStatus = (id: string, status: Status) =>
     act(() => authedPatch(`/api/events/${id}/status`, { status }), id)
 
-  const remove = (id: string, title: string) => {
-    if (!window.confirm(`Delete "${title}"?`)) return
-    act(() => authedDelete(`/api/events/${id}`), id)
+  const remove = async () => {
+    if (!pendingDelete) return
+    const id = pendingDelete.id
+    const snapshot = data ?? []
+    setPendingDelete(null)
+    setData(snapshot.filter((e) => e.id !== id))
+    try {
+      await authedDelete(`/api/events/${id}`)
+      reload()
+    } catch (e) {
+      setData(snapshot)
+      setActionError((e as Error).message)
+    }
   }
 
   return (
@@ -109,7 +123,7 @@ export default function EventList() {
                   <button
                     type="button"
                     disabled={busy === e.id}
-                    onClick={() => remove(e.id, e.title)}
+                    onClick={() => setPendingDelete({ id: e.id, title: e.title })}
                     className="text-sm font-semibold text-brand-red hover:underline disabled:opacity-50"
                   >
                     Delete
@@ -122,6 +136,14 @@ export default function EventList() {
           <p className="px-5 py-8 text-center text-sm text-muted">No events yet.</p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={pendingDelete ? `Delete "${pendingDelete.title}"?` : ''}
+        busy={busy !== null}
+        onConfirm={remove}
+        onCancel={() => setPendingDelete(null)}
+      />
     </>
   )
 }

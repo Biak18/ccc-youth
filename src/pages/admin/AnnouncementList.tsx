@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
 import { authedDelete, authedPatch } from '../../lib/api'
+import ConfirmDialog from '../../components/admin/ConfirmDialog'
 import { useAllAnnouncements } from '../../hooks/useAdminData'
 import { formatShort } from '../../lib/format'
 import type { Status } from '../../types/db'
@@ -13,9 +14,12 @@ import {
 } from '../../components/admin/AdminUI'
 
 export default function AnnouncementList() {
-  const { data, loading, error, reload } = useAllAnnouncements()
+  const { data, loading, error, reload, setData } = useAllAnnouncements()
   const [busy, setBusy] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; title: string } | null>(
+    null,
+  )
 
   const run = async (fn: () => Promise<unknown>, id: string) => {
     setBusy(id)
@@ -122,10 +126,7 @@ export default function AnnouncementList() {
                   <button
                     type="button"
                     disabled={busy === a.id}
-                    onClick={() => {
-                      if (window.confirm(`Delete "${a.title}"?`))
-                        run(() => authedDelete(`/api/announcements/${a.id}`), a.id)
-                    }}
+                    onClick={() => setPendingDelete({ id: a.id, title: a.title })}
                     className="text-sm font-semibold text-brand-red hover:underline disabled:opacity-50"
                   >
                     Delete
@@ -138,6 +139,27 @@ export default function AnnouncementList() {
           <p className="px-5 py-8 text-center text-sm text-muted">No announcements yet.</p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={pendingDelete ? `Delete "${pendingDelete.title}"?` : ''}
+        busy={busy !== null}
+        onConfirm={async () => {
+          if (!pendingDelete) return
+          const id = pendingDelete.id
+          const snapshot = data ?? []
+          setPendingDelete(null)
+          setData(snapshot.filter((a) => a.id !== id))
+          try {
+            await authedDelete(`/api/announcements/${id}`)
+            reload()
+          } catch (e) {
+            setData(snapshot)
+            setActionError((e as Error).message)
+          }
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
     </>
   )
 }

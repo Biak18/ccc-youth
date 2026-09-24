@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { authedDelete, authedPost, authedPut } from '../../lib/api'
+import ConfirmDialog from '../../components/admin/ConfirmDialog'
 import { useAllLeaders } from '../../hooks/useAdminData'
 import { uploadSingleImage } from '../../lib/upload'
 import type { YouthLeader } from '../../types/db'
@@ -15,11 +16,12 @@ import {
 const blank = { name: '', roleTitle: '', bio: '', photoUrl: '' }
 
 export default function Leaders() {
-  const { data, loading, error, reload } = useAllLeaders()
+  const { data, loading, error, reload, setData } = useAllLeaders()
   const [form, setForm] = useState(blank)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<YouthLeader | null>(null)
 
   const reset = () => {
     setForm(blank)
@@ -256,10 +258,7 @@ export default function Leaders() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      if (window.confirm(`Remove ${l.name}?`))
-                        run(() => authedDelete(`/api/leaders/${l.id}`))
-                    }}
+                    onClick={() => setPendingDelete(l)}
                     className="text-sm font-semibold text-brand-red hover:underline"
                   >
                     Delete
@@ -272,6 +271,26 @@ export default function Leaders() {
           <p className="px-5 py-8 text-center text-sm text-muted">No leaders added yet.</p>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title={pendingDelete ? `Remove ${pendingDelete.name}?` : ''}
+        onConfirm={async () => {
+          if (!pendingDelete) return
+          const snapshot = data ?? []
+          const id = pendingDelete.id
+          setPendingDelete(null)
+          setData(snapshot.filter((l) => l.id !== id))
+          try {
+            await authedDelete(`/api/leaders/${id}`)
+            reload()
+          } catch (err) {
+            setData(snapshot)
+            setActionError((err as Error).message)
+          }
+        }}
+        onCancel={() => setPendingDelete(null)}
+      />
     </>
   )
 }

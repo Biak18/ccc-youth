@@ -10,12 +10,12 @@ export default function Users() {
   const [search, setSearch] = useState('')
   const [applied, setApplied] = useState('')
   const { data, loading, error, reload } = useAdminQuery<Paged<Profile>>(
+    ['admin', 'users', applied],
     () =>
       apiFetch<Paged<Profile>>(
         `/api/users?page=1&pageSize=100${applied ? `&search=${encodeURIComponent(applied)}` : ''}`,
         { auth: true },
       ),
-    [applied],
   )
   const { user } = useAuth()
   const [busy, setBusy] = useState<string | null>(null)

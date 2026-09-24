@@ -1,5 +1,7 @@
 import { Suspense, lazy } from 'react'
 import { Routes, Route } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from './lib/query'
 import PublicLayout from './layouts/PublicLayout'
 import Home from './pages/public/Home'
 
@@ -37,6 +39,7 @@ function PageLoading() {
 
 export default function App() {
   return (
+    <QueryClientProvider client={queryClient}>
     <Suspense fallback={<PageLoading />}>
       <Routes>
         {/* Public site */}
@@ -60,5 +63,6 @@ export default function App() {
         <Route path="/admin/*" element={<AdminRoutes />} />
       </Routes>
     </Suspense>
+    </QueryClientProvider>
   )
 }

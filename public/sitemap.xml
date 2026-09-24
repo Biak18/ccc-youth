@@ -41,7 +41,12 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://example.com/activities/youth-sport-day</loc>
+    <loc>https://example.com/activities/city-youth-sports-day</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://example.com/events/youth-fellowship</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -51,7 +56,7 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://example.com/announcements/meeting-time-changed</loc>
+    <loc>https://example.com/announcements/meeting-time</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>

@@ -36,7 +36,9 @@ const empty: FormState = {
 }
 
 export default function Settings() {
-  const { data } = useAdminQuery<SiteSettings>(() => authedGet<SiteSettings>('/api/settings'))
+  const { data } = useAdminQuery<SiteSettings>(['admin', 'settings'], () =>
+    authedGet<SiteSettings>('/api/settings'),
+  )
   const [form, setForm] = useState<FormState>(empty)
   const [heroImages, setHeroImages] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
