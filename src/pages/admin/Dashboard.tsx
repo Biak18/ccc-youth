@@ -7,7 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 export default function Dashboard() {
   const stats = useDashboardStats()
   const { data: activities } = useAllActivities()
-  const { profile } = useAuth()
+  const { user } = useAuth()
 
   const cards = [
     { label: 'Activities', value: stats?.activities, to: '/admin/activities' },
@@ -26,7 +26,7 @@ export default function Dashboard() {
   return (
     <>
       <AdminHeader
-        title={`Welcome${profile?.display_name ? `, ${profile.display_name}` : ''}`}
+        title={`Welcome${user?.displayName ? `, ${user.displayName}` : ''}`}
         subtitle="Create and manage Youth content."
       />
 
@@ -81,7 +81,7 @@ export default function Dashboard() {
                   {a.title}
                 </Link>
                 <span className="shrink-0 text-sm text-muted">
-                  {formatShort(a.activity_date)}
+                  {formatShort(a.activityDate)}
                 </span>
                 <StatusBadge status={a.status} />
               </li>

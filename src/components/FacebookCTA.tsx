@@ -3,7 +3,7 @@ import { useSiteSettings } from '../hooks/useContent'
 
 export default function FacebookCTA() {
   const { data } = useSiteSettings()
-  const url = data?.facebook_url ?? site.facebookUrl
+  const url = data?.facebookUrl ?? site.facebookUrl
 
   return (
     <section className="bg-surface py-16 sm:py-20">
@@ -12,7 +12,7 @@ export default function FacebookCTA() {
           <div className="mx-auto max-w-3xl">
             <h2 className="text-2xl font-bold text-white sm:text-3xl">Stay Connected</h2>
             <p className="mx-auto mt-3 max-w-xl text-white/80">
-              Follow {data?.church_name ?? site.churchName} on Facebook for announcements and
+              Follow {data?.churchName ?? site.churchName} on Facebook for announcements and
               regular updates.
             </p>
             <a

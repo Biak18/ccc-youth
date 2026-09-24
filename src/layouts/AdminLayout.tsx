@@ -5,7 +5,7 @@ import { useAuth } from '../hooks/useAuth'
 import ThemeToggle from '../components/ThemeToggle'
 
 export default function AdminLayout() {
-  const { profile, isAdmin, signOut } = useAuth()
+  const { user, isAdmin, signOut } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
 
@@ -91,10 +91,10 @@ export default function AdminLayout() {
 
         <div className="mt-auto border-t border-white/10 px-5 py-4">
           <p className="truncate text-sm font-medium text-white">
-            {profile?.display_name ?? profile?.email ?? 'Signed in'}
+            {user?.displayName ?? user?.email ?? 'Signed in'}
           </p>
           <p className="text-xs uppercase tracking-wide text-white/50">
-            {profile?.role ?? 'leader'}
+            {user?.role ?? 'leader'}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
             <Link to="/" className="font-semibold text-white/80 hover:text-white">

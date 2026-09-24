@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import { authedDelete, authedPatch } from '../../lib/api'
 import { useAllAnnouncements } from '../../hooks/useAdminData'
 import { formatShort } from '../../lib/format'
 import type { Status } from '../../types/db'
@@ -17,16 +17,17 @@ export default function AnnouncementList() {
   const [busy, setBusy] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
-  const run = async (
-    fn: () => PromiseLike<{ error: { message: string } | null }>,
-    id: string,
-  ) => {
+  const run = async (fn: () => Promise<unknown>, id: string) => {
     setBusy(id)
     setActionError(null)
-    const { error } = await fn()
-    setBusy(null)
-    if (error) setActionError(error.message)
-    else reload()
+    try {
+      await fn()
+      reload()
+    } catch (e) {
+      setActionError((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
   }
 
   return (
@@ -53,13 +54,13 @@ export default function AnnouncementList() {
                   >
                     {a.title}
                   </Link>
-                  {a.is_pinned && (
+                  {a.isPinned && (
                     <span className="rounded bg-brand-red px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-white">
                       Pinned
                     </span>
                   )}
-                  {a.published_at && (
-                    <span className="text-sm text-muted">{formatShort(a.published_at)}</span>
+                  {a.publishedAt && (
+                    <span className="text-sm text-muted">{formatShort(a.publishedAt)}</span>
                   )}
                   <StatusBadge status={a.status} />
                 </div>
@@ -73,16 +74,15 @@ export default function AnnouncementList() {
                     onClick={() =>
                       run(
                         () =>
-                          supabase
-                            .from('announcements')
-                            .update({ is_pinned: !a.is_pinned })
-                            .eq('id', a.id),
+                          authedPatch(`/api/announcements/${a.id}/pin`, {
+                            isPinned: !a.isPinned,
+                          }),
                         a.id,
                       )
                     }
                     className={btnGhost}
                   >
-                    {a.is_pinned ? 'Unpin' : 'Pin'}
+                    {a.isPinned ? 'Unpin' : 'Pin'}
                   </button>
                   {a.status !== 'published' ? (
                     <button
@@ -91,13 +91,9 @@ export default function AnnouncementList() {
                       onClick={() =>
                         run(
                           () =>
-                            supabase
-                              .from('announcements')
-                              .update({
-                                status: 'published' as Status,
-                                published_at: a.published_at ?? new Date().toISOString(),
-                              })
-                              .eq('id', a.id),
+                            authedPatch(`/api/announcements/${a.id}/status`, {
+                              status: 'published' as Status,
+                            }),
                           a.id,
                         )
                       }
@@ -112,10 +108,9 @@ export default function AnnouncementList() {
                       onClick={() =>
                         run(
                           () =>
-                            supabase
-                              .from('announcements')
-                              .update({ status: 'draft' as Status })
-                              .eq('id', a.id),
+                            authedPatch(`/api/announcements/${a.id}/status`, {
+                              status: 'draft' as Status,
+                            }),
                           a.id,
                         )
                       }
@@ -129,10 +124,7 @@ export default function AnnouncementList() {
                     disabled={busy === a.id}
                     onClick={() => {
                       if (window.confirm(`Delete "${a.title}"?`))
-                        run(
-                          () => supabase.from('announcements').delete().eq('id', a.id),
-                          a.id,
-                        )
+                        run(() => authedDelete(`/api/announcements/${a.id}`), a.id)
                     }}
                     className="text-sm font-semibold text-brand-red hover:underline disabled:opacity-50"
                   >

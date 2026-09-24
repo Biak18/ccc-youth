@@ -7,8 +7,9 @@
  *
  * Add SITE_URL to your host's environment (for example
  * https://cccyouth.org) or it falls back to a placeholder.
- * If Supabase credentials are missing, a static-only sitemap
- * is written so the build never fails because of SEO.
+ * Content comes from the CityYouth backend API (VITE_API_URL).
+ * If the API is unreachable, a static-only sitemap is written
+ * so the build never fails because of SEO.
  */
 import { readFileSync, writeFileSync } from 'node:fs'
 
@@ -27,8 +28,7 @@ const readEnv = () => {
 
 const env = readEnv()
 const SITE = (env.SITE_URL ?? 'https://example.com').replace(/\/$/, '')
-const SB_URL = (env.VITE_SUPABASE_URL ?? '').replace(/\/$/, '')
-const SB_KEY = env.VITE_SUPABASE_ANON_KEY ?? ''
+const API = (env.VITE_API_URL ?? '').replace(/\/$/, '')
 
 const staticPaths = [
   ['/', '1.0', 'weekly'],
@@ -63,41 +63,39 @@ const writeSitemap = (dynamicUrls) => {
   )
 }
 
-if (!SB_URL || !SB_KEY) {
-  console.warn('Sitemap: Supabase credentials missing — writing static-only sitemap.')
+if (!API) {
+  console.warn('Sitemap: VITE_API_URL missing — writing static-only sitemap.')
   writeSitemap([])
   console.log(`Sitemap: ${staticPaths.length} static URLs written.`)
   process.exit(0)
 }
 
-const get = async (table, params) => {
-  const res = await fetch(
-    `${SB_URL}/rest/v1/${table}?select=slug,updated_at&${params}`,
-    { headers: { apikey: SB_KEY } },
-  )
-  if (!res.ok) throw new Error(`${table} -> HTTP ${res.status}`)
-  return res.json()
+const getSlugs = async (path) => {
+  const res = await fetch(`${API}${path}`)
+  if (!res.ok) throw new Error(`${path} -> HTTP ${res.status}`)
+  const body = await res.json()
+  const items = Array.isArray(body) ? body : (body.items ?? [])
+  if (!Array.isArray(items)) throw new Error(`${path} -> unexpected shape`)
+  return items.map((x) => x.slug).filter(Boolean)
 }
 
-const [activities, events, announcements] = await Promise.all([
-  get('activities', 'status=in.(published,archived)'),
-  get('events', 'status=in.(published,archived)'),
-  get('announcements', 'status=eq.published'),
-])
+try {
+  const [activities, events, announcements] = await Promise.all([
+    getSlugs('/api/activities?pageSize=1000'),
+    getSlugs('/api/events?filter=all&pageSize=1000'),
+    getSlugs('/api/announcements?pageSize=1000'),
+  ])
 
-if (!Array.isArray(activities) || !Array.isArray(events) || !Array.isArray(announcements)) {
-  console.error('Sitemap: unexpected response shape.')
-  process.exit(1)
+  const dynamicUrls = [
+    ...activities.map((s) => url(`/activities/${s}`, '0.8', 'monthly')),
+    ...events.map((s) => url(`/events/${s}`, '0.8', 'monthly')),
+    ...announcements.map((s) => url(`/announcements/${s}`, '0.6', 'monthly')),
+  ]
+
+  writeSitemap(dynamicUrls)
+  console.log(`Sitemap: ${staticPaths.length + dynamicUrls.length} URLs written.`)
+} catch (e) {
+  console.warn(`Sitemap: API unreachable (${e.message}) — writing static-only sitemap.`)
+  writeSitemap([])
+  console.log(`Sitemap: ${staticPaths.length} static URLs written.`)
 }
-
-const dynamicUrls = [
-  ...activities.map((a) => url(`/activities/${a.slug}`, '0.8', 'monthly', a.updated_at)),
-  ...events.map((e) => url(`/events/${e.slug}`, '0.8', 'monthly', e.updated_at)),
-  ...announcements.map((a) => url(`/announcements/${a.slug}`, '0.6', 'monthly', a.updated_at)),
-]
-
-writeSitemap(dynamicUrls)
-
-console.log(
-  `Sitemap: ${staticPaths.length + dynamicUrls.length} URLs written.`,
-)

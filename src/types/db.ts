@@ -1,37 +1,51 @@
-// Mirrors the CCC-Youth Postgres schema (DATA.md).
+// Mirrors the CityYouth backend API shapes: camelCase JSON (FRONTEND_BINDING.md).
 export type Status = 'draft' | 'published' | 'archived'
 export type Role = 'admin' | 'leader'
 
+export type Paged<T> = {
+  items: T[]
+  page: number
+  pageSize: number
+  totalCount: number
+}
+
+export type Problem = { title: string; detail?: string; status: number }
+
+/**
+ * List endpoints return a subset of fields (no description/location/
+ * audit columns); detail endpoints return the full object. Shared
+ * nullable fields are optional so both shapes fit one type.
+ */
 export type Activity = {
   id: string
   title: string
   slug: string
-  description: string | null
-  activity_date: string // YYYY-MM-DD - the real date the activity happened
+  description?: string | null
+  activityDate: string // YYYY-MM-DD - the real date the activity happened
   category: string | null
-  location: string | null
-  cover_image_url: string | null
+  location?: string | null
+  coverImageUrl: string | null
   status: Status
-  created_by: string | null
-  created_at: string
-  updated_at: string
+  createdBy?: string | null
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type EventRow = {
   id: string
   title: string
   slug: string
-  description: string | null
-  cover_image_url: string | null
+  description?: string | null
+  coverImageUrl: string | null
   location: string | null
-  start_date: string
-  end_date: string | null
-  registration_url: string | null
-  contact_information: string | null
+  startDate: string
+  endDate: string | null
+  registrationUrl?: string | null
+  contactInformation?: string | null
   status: Status
-  created_by: string | null
-  created_at: string
-  updated_at: string
+  createdBy?: string | null
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type Announcement = {
@@ -39,96 +53,63 @@ export type Announcement = {
   title: string
   slug: string
   content: string | null
-  cover_image_url: string | null
-  published_at: string | null
-  is_pinned: boolean
+  coverImageUrl: string | null
+  publishedAt: string | null
+  isPinned: boolean
   status: Status
-  created_by: string | null
-  created_at: string
-  updated_at: string
+  createdBy?: string | null
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type Media = {
   id: string
-  activity_id: string | null
+  activityId: string | null
   type: 'image' | 'video'
   source: 'storage' | 'youtube' | 'external'
   url: string
-  thumbnail_url: string | null
+  thumbnailUrl: string | null
   title: string | null
   description: string | null
-  sort_order: number
-  uploaded_by: string | null
-  created_at: string
+  sortOrder: number
+  uploadedBy?: string | null
+  createdAt?: string
 }
 
 export type YouthLeader = {
   id: string
-  user_id: string | null
+  userId: string | null
   name: string
-  role_title: string | null
-  photo_url: string | null
+  roleTitle: string | null
+  photoUrl: string | null
   bio: string | null
-  sort_order: number
-  is_visible: boolean
+  sortOrder: number
+  isVisible: boolean
 }
 
 export type SiteSettings = {
   id: number
-  church_name: string | null
-  youth_name: string | null
-  logo_url: string | null
-  hero_image_url: string | null
-  hero_images: string[] | null
+  churchName: string | null
+  youthName: string | null
+  logoUrl: string | null
+  heroImageUrl: string | null
+  heroImages: string[] | null
   tagline: string | null
   description: string | null
   address: string | null
   phone: string | null
   email: string | null
-  facebook_url: string | null
-  youtube_url: string | null
-  instagram_url: string | null
+  facebookUrl: string | null
+  youtubeUrl: string | null
+  instagramUrl: string | null
 }
 
+/** Signed-in dashboard account (`GET /api/auth/me`, `GET /api/users`). */
 export type Profile = {
   id: string
   email: string | null
-  display_name: string | null
-  avatar_url: string | null
+  displayName: string | null
+  avatarUrl?: string | null
   role: Role
-  created_at: string
-}
-
-export type Row<T> = T
-type Table<R> = {
-  Row: R
-  Insert: Partial<R>
-  Update: Partial<R>
-  Relationships: []
-}
-
-/**
- * supabase-js requires Views, Functions, Enums and CompositeTypes to be
- * present. Without them the whole schema fails its type constraint and
- * every insert/update silently resolves to `never`.
- */
-export type Database = {
-  public: {
-    Tables: {
-      activities: Table<Activity>
-      events: Table<EventRow>
-      announcements: Table<Announcement>
-      media: Table<Media>
-      youth_leaders: Table<YouthLeader>
-      site_settings: Table<SiteSettings>
-      profiles: Table<Profile>
-    }
-    Views: Record<never, never>
-    Functions: Record<never, never>
-    Enums: {
-      content_status: Status
-      user_role: Role
-    }
-    CompositeTypes: Record<never, never>
-  }
+  createdAt?: string
 }

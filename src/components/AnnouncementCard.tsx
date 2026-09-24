@@ -7,18 +7,18 @@ export default function AnnouncementCard({ item }: { item: Announcement }) {
     <article
       className={[
         'rounded-2xl border bg-card p-5 shadow-sm transition hover:shadow-md',
-        item.is_pinned ? 'border-gold/50 bg-gold/[0.06]' : 'border-line',
+        item.isPinned ? 'border-gold/50 bg-gold/[0.06]' : 'border-line',
       ].join(' ')}
     >
       <div className="flex items-center gap-2">
-        {item.is_pinned && (
+        {item.isPinned && (
           <span className="rounded bg-gold px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-yellow-900">
             Pinned
           </span>
         )}
-        {item.published_at && (
-          <time className="text-xs font-medium text-muted" dateTime={item.published_at}>
-            {formatDate(item.published_at)}
+        {item.publishedAt && (
+          <time className="text-xs font-medium text-muted" dateTime={item.publishedAt}>
+            {formatDate(item.publishedAt)}
           </time>
         )}
       </div>

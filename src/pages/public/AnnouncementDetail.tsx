@@ -38,21 +38,21 @@ export default function AnnouncementDetail() {
       <Seo
         title={item.title}
         description={item.content?.slice(0, 160) ?? `${item.title} — Christian City Church Youth announcement.`}
-        image={item.cover_image_url}
+        image={item.coverImageUrl}
         type="article"
       />
       <div className="bg-navy">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:py-14">
           <Breadcrumb parentLabel="Announcements" parentTo="/announcements" current={item.title} />
           <div className="flex flex-wrap items-center gap-2">
-            {item.is_pinned && (
+            {item.isPinned && (
               <span className="inline-flex rounded-full bg-brand-red px-3 py-1 text-xs font-bold uppercase tracking-wide text-white">
                 Pinned
               </span>
             )}
-            {item.published_at && (
-              <time className="text-sm font-medium text-white/70" dateTime={item.published_at}>
-                {formatDate(item.published_at)}
+            {item.publishedAt && (
+              <time className="text-sm font-medium text-white/70" dateTime={item.publishedAt}>
+                {formatDate(item.publishedAt)}
               </time>
             )}
           </div>
@@ -64,9 +64,9 @@ export default function AnnouncementDetail() {
 
       <Section>
         <div className="max-w-3xl">
-          {item.cover_image_url && (
+          {item.coverImageUrl && (
             <CoverImage
-              src={item.cover_image_url}
+              src={item.coverImageUrl}
               alt={item.title}
               className="mb-8 aspect-[16/9] rounded-2xl"
             />

@@ -14,11 +14,11 @@ export function useActivityFilters(rows: Activity[]) {
   const year: number | 'all' = yearParam ? Number(yearParam) : 'all'
   const category: string | 'all' = catParam ?? 'all'
 
-  const years = [...new Set(rows.map((a) => getYear(a.activity_date)))].sort((a, b) => b - a)
+  const years = [...new Set(rows.map((a) => getYear(a.activityDate)))].sort((a, b) => b - a)
   const categories = [...new Set(rows.map((a) => a.category).filter(Boolean) as string[])].sort()
 
   const visible = rows
-    .filter((a) => year === 'all' || getYear(a.activity_date) === year)
+    .filter((a) => year === 'all' || getYear(a.activityDate) === year)
     .filter((a) => category === 'all' || a.category === category)
 
   const update = (next: { year?: number | 'all'; category?: string | 'all' }) => {

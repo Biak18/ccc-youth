@@ -9,7 +9,7 @@ export default function ActivityCard({ activity }: { activity: Activity }) {
       <Link to={`/activities/${activity.slug}`} className="block">
         <div className="overflow-hidden">
           <CoverImage
-            src={activity.cover_image_url}
+            src={activity.coverImageUrl}
             alt={activity.title}
             className="aspect-[4/3] transition duration-500 ease-out group-hover:scale-[1.06]"
           />
@@ -20,7 +20,7 @@ export default function ActivityCard({ activity }: { activity: Activity }) {
           </h3>
           {/* The real activity date, never the upload date */}
           <p className="mt-1 text-sm font-bold text-ember">
-            {formatDate(activity.activity_date)}
+            {formatDate(activity.activityDate)}
           </p>
           {activity.location && (
             <p className="mt-1 text-sm text-muted">{activity.location}</p>

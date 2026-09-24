@@ -8,7 +8,7 @@ export default function Footer() {
   const address = data?.address ?? site.address
   const phone = data?.phone ?? site.phone
   const email = data?.email ?? site.email
-  const facebook = data?.facebook_url ?? site.facebookUrl
+  const facebook = data?.facebookUrl ?? site.facebookUrl
 
   return (
     <footer className="bg-navy text-white">
@@ -21,7 +21,7 @@ export default function Footer() {
               className="h-12 w-auto rounded bg-white/90 p-1"
             />
             <div className="leading-tight">
-              <p className="font-bold">{data?.church_name ?? site.churchName}</p>
+              <p className="font-bold">{data?.churchName ?? site.churchName}</p>
               <p className="text-sm text-white/80">Youth Ministry</p>
             </div>
           </div>

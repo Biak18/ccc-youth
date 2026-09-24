@@ -1,15 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { apiFetch, authedGet, type Paged } from '../lib/api'
 import type { Activity, Announcement, EventRow, Media, YouthLeader } from '../types/db'
 
 /**
- * Admin queries deliberately include drafts. RLS lets signed-in staff
- * read every status, while the public policies still hide drafts.
+ * Admin reads go to the backend with the access-token header.
+ * Signed-in staff see published + archived + own drafts; admins see
+ * everything including drafts.
  */
-export function useAdminQuery<T>(
-  run: () => PromiseLike<{ data: T | null; error: { message: string } | null }>,
-  deps: unknown[] = [],
-) {
+export function useAdminQuery<T>(run: () => Promise<T | null>, deps: unknown[] = []) {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -20,12 +18,20 @@ export function useAdminQuery<T>(
   useEffect(() => {
     let active = true
     setLoading(true)
-    Promise.resolve(run()).then(({ data, error }) => {
-      if (!active) return
-      setData(data ?? null)
-      setError(error?.message ?? null)
-      setLoading(false)
-    })
+    run().then(
+      (rows) => {
+        if (!active) return
+        setData(rows)
+        setError(null)
+        setLoading(false)
+      },
+      (e) => {
+        if (!active) return
+        setData(null)
+        setError((e as Error).message)
+        setLoading(false)
+      },
+    )
     return () => {
       active = false
     }
@@ -35,56 +41,64 @@ export function useAdminQuery<T>(
   return { data, loading, error, reload }
 }
 
+/** A missing row is an empty result, not an error. */
+async function byId<T>(path: string): Promise<T | null> {
+  try {
+    return await authedGet<T>(path)
+  } catch (e) {
+    if ((e as { status?: number }).status === 404) return null
+    throw e
+  }
+}
+
 export const useAllActivities = () =>
   useAdminQuery<Activity[]>(() =>
-    supabase.from('activities').select('*').order('activity_date', { ascending: false }),
+    apiFetch<Paged<Activity>>('/api/activities?pageSize=100', { auth: true }).then(
+      (p) => p.items,
+    ),
   )
 
 export const useAllEvents = () =>
   useAdminQuery<EventRow[]>(() =>
-    supabase.from('events').select('*').order('start_date', { ascending: false }),
+    apiFetch<Paged<EventRow>>('/api/events?filter=all&pageSize=100', { auth: true }).then(
+      (p) => p.items,
+    ),
   )
 
 export const useAllAnnouncements = () =>
   useAdminQuery<Announcement[]>(() =>
-    supabase
-      .from('announcements')
-      .select('*')
-      .order('is_pinned', { ascending: false })
-      .order('created_at', { ascending: false }),
+    apiFetch<Paged<Announcement>>('/api/announcements?pageSize=100', {
+      auth: true,
+    }).then((p) => p.items),
   )
 
 export const useAllLeaders = () =>
-  useAdminQuery<YouthLeader[]>(() =>
-    supabase.from('youth_leaders').select('*').order('sort_order', { ascending: true }),
-  )
+  useAdminQuery<YouthLeader[]>(() => authedGet<YouthLeader[]>('/api/leaders/all'))
 
 export const useActivityById = (id?: string) =>
   useAdminQuery<Activity>(
-    () => supabase.from('activities').select('*').eq('id', id ?? '').maybeSingle(),
+    () => (id ? byId<Activity>(`/api/activities/${id}`) : Promise.resolve(null)),
     [id],
   )
 
 export const useEventById = (id?: string) =>
   useAdminQuery<EventRow>(
-    () => supabase.from('events').select('*').eq('id', id ?? '').maybeSingle(),
+    () => (id ? byId<EventRow>(`/api/events/${id}`) : Promise.resolve(null)),
     [id],
   )
 
 export const useAnnouncementById = (id?: string) =>
   useAdminQuery<Announcement>(
-    () => supabase.from('announcements').select('*').eq('id', id ?? '').maybeSingle(),
+    () => (id ? byId<Announcement>(`/api/announcements/${id}`) : Promise.resolve(null)),
     [id],
   )
 
 export const useMediaByActivity = (activityId?: string) =>
   useAdminQuery<Media[]>(
     () =>
-      supabase
-        .from('media')
-        .select('*')
-        .eq('activity_id', activityId ?? '')
-        .order('sort_order', { ascending: true }),
+      activityId
+        ? authedGet<Media[]>(`/api/activities/${activityId}/media`)
+        : Promise.resolve([]),
     [activityId],
   )
 
@@ -96,30 +110,34 @@ export type DashboardStats = {
   videos: number
 }
 
+/**
+ * No stats endpoint exists, so counts come from `totalCount`
+ * with `pageSize=1`.
+ */
 export function useDashboardStats() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
 
   useEffect(() => {
-    const head = { count: 'exact' as const, head: true }
+    let active = true
+    const total = (path: string) =>
+      apiFetch<Paged<unknown>>(path, { auth: true }).then((p) => p.totalCount)
     Promise.all([
-      supabase.from('activities').select('id', head).eq('status', 'published'),
-      supabase
-        .from('events')
-        .select('id', head)
-        .eq('status', 'published')
-        .gte('start_date', new Date().toISOString()),
-      supabase.from('activities').select('id', head).eq('status', 'draft'),
-      supabase.from('media').select('id', head).eq('type', 'image'),
-      supabase.from('media').select('id', head).eq('type', 'video'),
-    ]).then(([a, e, d, p, v]) => {
-      setStats({
-        activities: a.count ?? 0,
-        upcomingEvents: e.count ?? 0,
-        drafts: d.count ?? 0,
-        photos: p.count ?? 0,
-        videos: v.count ?? 0,
-      })
-    })
+      total('/api/activities?status=published&pageSize=1'),
+      total('/api/events?filter=upcoming&pageSize=1'),
+      total('/api/activities?status=draft&pageSize=1'),
+      total('/api/media?type=image&pageSize=1'),
+      total('/api/media?type=video&pageSize=1'),
+    ]).then(
+      ([activities, upcomingEvents, drafts, photos, videos]) => {
+        if (active) setStats({ activities, upcomingEvents, drafts, photos, videos })
+      },
+      () => {
+        if (active) setStats(null)
+      },
+    )
+    return () => {
+      active = false
+    }
   }, [])
 
   return stats

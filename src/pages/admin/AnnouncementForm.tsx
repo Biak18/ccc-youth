@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { authedPatch, authedPost, authedPut, ApiError } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { useAnnouncementById } from '../../hooks/useAdminData'
 import { slugify } from '../../lib/format'
-import type { Status } from '../../types/db'
+import type { Announcement } from '../../types/db'
 import {
   AdminHeader,
   Field,
@@ -18,7 +18,7 @@ export default function AnnouncementForm() {
   const { id } = useParams()
   const editing = Boolean(id)
   const navigate = useNavigate()
-  const { session } = useAuth()
+  const { user } = useAuth()
   const existing = useAnnouncementById(id)
 
   const [title, setTitle] = useState('')
@@ -35,15 +35,15 @@ export default function AnnouncementForm() {
     setTitle(a.title)
     setSlug(a.slug)
     setContent(a.content ?? '')
-    setIsPinned(a.is_pinned)
+    setIsPinned(a.isPinned)
   }, [existing.data])
 
   useEffect(() => {
     if (!slugTouched) setSlug(slugify(title))
   }, [title, slugTouched])
 
-  const save = async (status: Status) => {
-    if (!session?.user) return
+  const save = async (publish: boolean) => {
+    if (!user) return
     if (!title.trim()) {
       setError('A title is required.')
       return
@@ -51,33 +51,44 @@ export default function AnnouncementForm() {
     setBusy(true)
     setError(null)
 
-    const payload = {
-      title: title.trim(),
-      slug: slug.trim() || slugify(title),
-      content: content.trim() || null,
-      is_pinned: isPinned,
-      status,
-      published_at:
-        status === 'published'
-          ? (existing.data?.published_at ?? new Date().toISOString())
-          : existing.data?.published_at ?? null,
-    }
+    try {
+      let announcementId = id ?? ''
+      if (editing) {
+        // The update endpoint replaces the whole record, so the
+        // existing cover must be re-sent or it would be wiped to null.
+        await authedPut(`/api/announcements/${announcementId}`, {
+          title: title.trim(),
+          content: content.trim() || null,
+          coverImageUrl: existing.data?.coverImageUrl ?? null,
+        })
+      } else {
+        const created = await authedPost<Announcement>('/api/announcements', {
+          title: title.trim(),
+          ...(slugTouched && slug.trim() ? { slug: slug.trim() } : {}),
+          content: content.trim() || null,
+        })
+        announcementId = created.id
+      }
 
-    const res = editing
-      ? await supabase.from('announcements').update(payload).eq('id', id!)
-      : await supabase
-          .from('announcements')
-          .insert({ ...payload, created_by: session.user.id })
+      // Pinning is a separate endpoint, not part of the payload.
+      if (isPinned !== (existing.data?.isPinned ?? false)) {
+        await authedPatch(`/api/announcements/${announcementId}/pin`, { isPinned })
+      }
 
-    setBusy(false)
-    if (res.error) {
-      setError(
-        res.error.code === '23505'
-          ? 'That web address (slug) is already used by another announcement.'
-          : res.error.message,
-      )
-    } else {
+      if (publish) {
+        await authedPatch(`/api/announcements/${announcementId}/status`, {
+          status: 'published',
+        })
+      }
+
       navigate('/admin/announcements')
+    } catch (e) {
+      setBusy(false)
+      if (e instanceof ApiError && (e.status === 409 || e.status === 400) && /slug/i.test(e.message)) {
+        setError('That web address (slug) is already used by another announcement.')
+      } else {
+        setError((e as Error).message ?? 'Could not save this announcement.')
+      }
     }
   }
 
@@ -91,7 +102,7 @@ export default function AnnouncementForm() {
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          save('published')
+          save(true)
         }}
         className="space-y-6 rounded-2xl bg-card p-6 shadow-sm ring-1 ring-line"
       >
@@ -147,7 +158,7 @@ export default function AnnouncementForm() {
           <button
             type="button"
             disabled={busy}
-            onClick={() => save('draft')}
+            onClick={() => save(false)}
             className={btnSecondary}
           >
             Save Draft

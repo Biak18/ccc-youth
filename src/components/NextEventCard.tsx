@@ -8,7 +8,7 @@ export default function NextEventCard({ event }: { event: EventRow }) {
     <article className="group overflow-hidden rounded-2xl border border-line bg-card shadow-sm transition duration-300 hover:shadow-xl md:grid md:grid-cols-2">
       <Link to={`/events/${event.slug}`} className="block overflow-hidden md:h-full">
         <CoverImage
-          src={event.cover_image_url}
+          src={event.coverImageUrl}
           alt={event.title}
           className="aspect-[16/10] transition duration-500 ease-out group-hover:scale-[1.04] md:h-full md:aspect-auto"
         />
@@ -24,9 +24,9 @@ export default function NextEventCard({ event }: { event: EventRow }) {
         </h3>
         <dl className="mt-4 space-y-1 text-sm text-ink/80">
           <dt className="sr-only">Date</dt>
-          <dd className="font-semibold text-ink">{formatDate(event.start_date)}</dd>
+          <dd className="font-semibold text-ink">{formatDate(event.startDate)}</dd>
           <dt className="sr-only">Time</dt>
-          <dd>{formatDayTime(event.start_date)}</dd>
+          <dd>{formatDayTime(event.startDate)}</dd>
           {event.location && (
             <>
               <dt className="sr-only">Location</dt>
@@ -42,9 +42,9 @@ export default function NextEventCard({ event }: { event: EventRow }) {
           >
             View Event
           </Link>
-          {event.registration_url && (
+          {event.registrationUrl && (
             <a
-              href={event.registration_url}
+              href={event.registrationUrl}
               target="_blank"
               rel="noreferrer"
               className="inline-flex rounded-lg bg-brand-red px-5 py-3 text-sm font-semibold text-white hover:bg-brand-red-dark"

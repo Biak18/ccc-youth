@@ -12,20 +12,20 @@ function Checking() {
 
 /** Any signed-in leader or admin. */
 export function RequireAuth({ children }: { children: ReactNode }) {
-  const { session, loading } = useAuth()
+  const { user, loading } = useAuth()
   const location = useLocation()
 
   if (loading) return <Checking />
-  if (!session) return <Navigate to="/login" state={{ from: location.pathname }} replace />
+  if (!user) return <Navigate to="/login" state={{ from: location.pathname }} replace />
   return <>{children}</>
 }
 
-/** Admins only. Authorization is enforced again by RLS on the server. */
+/** Admins only. Authorization is enforced again by the API on the server. */
 export function RequireAdmin({ children }: { children: ReactNode }) {
-  const { session, profile, loading, isAdmin } = useAuth()
+  const { user, loading, isAdmin } = useAuth()
 
-  if (loading || (session && !profile)) return <Checking />
-  if (!session) return <Navigate to="/login" replace />
+  if (loading) return <Checking />
+  if (!user) return <Navigate to="/login" replace />
   if (!isAdmin) {
     return (
       <div className="rounded-xl border border-brand-red/30 bg-brand-red/5 p-8 text-center">

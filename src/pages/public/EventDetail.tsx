@@ -34,14 +34,14 @@ export default function EventDetail() {
 
   if (!event) return <NotFound />
 
-  const upcoming = isUpcoming(event.start_date)
+  const upcoming = isUpcoming(event.startDate)
 
   return (
     <>
       <Seo
         title={event.title}
         description={event.description ?? `${event.title} at Christian City Church Youth.`}
-        image={event.cover_image_url}
+        image={event.coverImageUrl}
         type="article"
       />
       <div className="bg-navy">
@@ -62,9 +62,9 @@ export default function EventDetail() {
       <Section>
         <div className="grid gap-10 lg:grid-cols-3">
           <div className="lg:col-span-2">
-            {event.cover_image_url && (
+            {event.coverImageUrl && (
               <CoverImage
-                src={event.cover_image_url}
+                src={event.coverImageUrl}
                 alt={event.title}
                 className="mb-8 aspect-[16/9] rounded-2xl"
               />
@@ -82,16 +82,16 @@ export default function EventDetail() {
               <dl className="mt-4 space-y-4 text-sm">
                 <div>
                   <dt className="font-semibold text-muted">Date</dt>
-                  <dd className="text-ink">{formatDate(event.start_date)}</dd>
+                  <dd className="text-ink">{formatDate(event.startDate)}</dd>
                 </div>
                 <div>
                   <dt className="font-semibold text-muted">Time</dt>
-                  <dd className="text-ink">{formatDayTime(event.start_date)}</dd>
+                  <dd className="text-ink">{formatDayTime(event.startDate)}</dd>
                 </div>
-                {event.end_date && (
+                {event.endDate && (
                   <div>
                     <dt className="font-semibold text-muted">Ends</dt>
-                    <dd className="text-ink">{formatDate(event.end_date)}</dd>
+                    <dd className="text-ink">{formatDate(event.endDate)}</dd>
                   </div>
                 )}
                 {event.location && (
@@ -100,19 +100,19 @@ export default function EventDetail() {
                     <dd className="text-ink">{event.location}</dd>
                   </div>
                 )}
-                {event.contact_information && (
+                {event.contactInformation && (
                   <div>
                     <dt className="font-semibold text-muted">Contact</dt>
                     <dd className="whitespace-pre-line text-ink">
-                      {event.contact_information}
+                      {event.contactInformation}
                     </dd>
                   </div>
                 )}
               </dl>
 
-              {event.registration_url && upcoming && (
+              {event.registrationUrl && upcoming && (
                 <a
-                  href={event.registration_url}
+                  href={event.registrationUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-6 block rounded-lg bg-brand-red px-5 py-3 text-center text-sm font-semibold text-white hover:bg-brand-red-dark"

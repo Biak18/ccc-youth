@@ -6,7 +6,7 @@ import { FormError, Field, inputClass, btnPrimary } from '../../components/admin
 import { site } from '../../site'
 
 export default function Login() {
-  const { session, signIn, loading } = useAuth()
+  const { user, signIn, loading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [email, setEmail] = useState('')
@@ -14,7 +14,7 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  if (!loading && session) {
+  if (!loading && user) {
     const from = (location.state as { from?: string } | null)?.from
     return <Navigate to={from ?? '/admin'} replace />
   }

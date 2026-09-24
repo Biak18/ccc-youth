@@ -24,7 +24,7 @@ export default function VideoEmbed({ video }: { video: Media }) {
         ) : (
           <video
             src={video.url}
-            poster={video.thumbnail_url ?? undefined}
+            poster={video.thumbnailUrl ?? undefined}
             controls
             preload="metadata"
             className="aspect-video w-full"

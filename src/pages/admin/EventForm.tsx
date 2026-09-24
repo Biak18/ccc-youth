@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { authedPatch, authedPost, authedPut, ApiError } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { useEventById } from '../../hooks/useAdminData'
 import { slugify } from '../../lib/format'
 import { uploadSingleImage } from '../../lib/upload'
-import type { Status } from '../../types/db'
+import type { EventRow } from '../../types/db'
 import {
   AdminHeader,
   Field,
@@ -16,7 +16,7 @@ import {
 } from '../../components/admin/AdminUI'
 
 /** <input type="datetime-local"> needs "YYYY-MM-DDTHH:mm" in local time. */
-const toLocalInput = (iso: string | null) => {
+const toLocalInput = (iso: string | null | undefined) => {
   if (!iso) return ''
   const d = new Date(iso)
   const pad = (n: number) => String(n).padStart(2, '0')
@@ -27,7 +27,7 @@ export default function EventForm() {
   const { id } = useParams()
   const editing = Boolean(id)
   const navigate = useNavigate()
-  const { session } = useAuth()
+  const { user } = useAuth()
   const existing = useEventById(id)
 
   const [title, setTitle] = useState('')
@@ -48,13 +48,13 @@ export default function EventForm() {
     if (!e) return
     setTitle(e.title)
     setSlug(e.slug)
-    setStart(toLocalInput(e.start_date))
-    setEnd(toLocalInput(e.end_date))
+    setStart(toLocalInput(e.startDate))
+    setEnd(toLocalInput(e.endDate))
     setLocation(e.location ?? '')
     setDescription(e.description ?? '')
-    setRegistrationUrl(e.registration_url ?? '')
-    setContact(e.contact_information ?? '')
-    setCoverUrl(e.cover_image_url)
+    setRegistrationUrl(e.registrationUrl ?? '')
+    setContact(e.contactInformation ?? '')
+    setCoverUrl(e.coverImageUrl)
   }, [existing.data])
 
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function EventForm() {
   const pickCover = async (file: File) => {
     setBusy(true)
     try {
-      setCoverUrl(await uploadSingleImage(file, 'images', 'events'))
+      setCoverUrl(await uploadSingleImage(file, 'images'))
     } catch (e) {
       setError((e as Error).message)
     } finally {
@@ -72,8 +72,8 @@ export default function EventForm() {
     }
   }
 
-  const save = async (status: Status) => {
-    if (!session?.user) return
+  const save = async (publish: boolean) => {
+    if (!user) return
     if (!title.trim() || !start) {
       setError('Title, date and time are required.')
       return
@@ -81,32 +81,46 @@ export default function EventForm() {
     setBusy(true)
     setError(null)
 
-    const payload = {
-      title: title.trim(),
-      slug: slug.trim() || slugify(title),
-      description: description.trim() || null,
-      location: location.trim() || null,
-      start_date: new Date(start).toISOString(),
-      end_date: end ? new Date(end).toISOString() : null,
-      registration_url: registrationUrl.trim() || null,
-      contact_information: contact.trim() || null,
-      cover_image_url: coverUrl,
-      status,
-    }
+    try {
+      let eventId = id ?? ''
+      if (editing) {
+        await authedPut(`/api/events/${eventId}`, {
+          title: title.trim(),
+          description: description.trim() || null,
+          location: location.trim() || null,
+          startDate: new Date(start).toISOString(),
+          endDate: end ? new Date(end).toISOString() : null,
+          registrationUrl: registrationUrl.trim() || null,
+          contactInformation: contact.trim() || null,
+          coverImageUrl: coverUrl,
+        })
+      } else {
+        const created = await authedPost<EventRow>('/api/events', {
+          title: title.trim(),
+          ...(slugTouched && slug.trim() ? { slug: slug.trim() } : {}),
+          description: description.trim() || null,
+          location: location.trim() || null,
+          startDate: new Date(start).toISOString(),
+          endDate: end ? new Date(end).toISOString() : null,
+          registrationUrl: registrationUrl.trim() || null,
+          contactInformation: contact.trim() || null,
+          coverImageUrl: coverUrl,
+        })
+        eventId = created.id
+      }
 
-    const res = editing
-      ? await supabase.from('events').update(payload).eq('id', id!)
-      : await supabase.from('events').insert({ ...payload, created_by: session.user.id })
+      if (publish) {
+        await authedPatch(`/api/events/${eventId}/status`, { status: 'published' })
+      }
 
-    setBusy(false)
-    if (res.error) {
-      setError(
-        res.error.code === '23505'
-          ? 'That web address (slug) is already used by another event.'
-          : res.error.message,
-      )
-    } else {
       navigate('/admin/events')
+    } catch (e) {
+      setBusy(false)
+      if (e instanceof ApiError && (e.status === 409 || e.status === 400) && /slug/i.test(e.message)) {
+        setError('That web address (slug) is already used by another event.')
+      } else {
+        setError((e as Error).message ?? 'Could not save this event.')
+      }
     }
   }
 
@@ -117,7 +131,7 @@ export default function EventForm() {
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          save('published')
+          save(true)
         }}
         className="space-y-6 rounded-2xl bg-card p-6 shadow-sm ring-1 ring-line"
       >
@@ -237,7 +251,7 @@ export default function EventForm() {
           <button
             type="button"
             disabled={busy}
-            onClick={() => save('draft')}
+            onClick={() => save(false)}
             className={btnSecondary}
           >
             Save Draft

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import { authedDelete, authedPatch } from '../../lib/api'
 import { useAllEvents } from '../../hooks/useAdminData'
 import { formatShort, isUpcoming } from '../../lib/format'
 import type { Status } from '../../types/db'
@@ -17,21 +17,25 @@ export default function EventList() {
   const [busy, setBusy] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
-  const act = async (fn: () => PromiseLike<{ error: { message: string } | null }>, id: string) => {
+  const act = async (fn: () => Promise<unknown>, id: string) => {
     setBusy(id)
     setActionError(null)
-    const { error } = await fn()
-    setBusy(null)
-    if (error) setActionError(error.message)
-    else reload()
+    try {
+      await fn()
+      reload()
+    } catch (e) {
+      setActionError((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
   }
 
   const setStatus = (id: string, status: Status) =>
-    act(() => supabase.from('events').update({ status }).eq('id', id), id)
+    act(() => authedPatch(`/api/events/${id}/status`, { status }), id)
 
   const remove = (id: string, title: string) => {
     if (!window.confirm(`Delete "${title}"?`)) return
-    act(() => supabase.from('events').delete().eq('id', id), id)
+    act(() => authedDelete(`/api/events/${id}`), id)
   }
 
   return (
@@ -59,8 +63,8 @@ export default function EventList() {
                     {e.title}
                   </Link>
                   <span className="text-sm text-muted">
-                    {formatShort(e.start_date)}
-                    {isUpcoming(e.start_date) ? ' - upcoming' : ''}
+                    {formatShort(e.startDate)}
+                    {isUpcoming(e.startDate) ? ' - upcoming' : ''}
                   </span>
                   <StatusBadge status={e.status} />
                 </div>

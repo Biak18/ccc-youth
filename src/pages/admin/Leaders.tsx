@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import { authedDelete, authedPost, authedPut } from '../../lib/api'
 import { useAllLeaders } from '../../hooks/useAdminData'
 import { uploadSingleImage } from '../../lib/upload'
 import type { YouthLeader } from '../../types/db'
@@ -12,7 +12,7 @@ import {
   inputClass,
 } from '../../components/admin/AdminUI'
 
-const blank = { name: '', role_title: '', bio: '', photo_url: '' }
+const blank = { name: '', roleTitle: '', bio: '', photoUrl: '' }
 
 export default function Leaders() {
   const { data, loading, error, reload } = useAllLeaders()
@@ -30,9 +30,9 @@ export default function Leaders() {
     setEditingId(l.id)
     setForm({
       name: l.name,
-      role_title: l.role_title ?? '',
+      roleTitle: l.roleTitle ?? '',
       bio: l.bio ?? '',
-      photo_url: l.photo_url ?? '',
+      photoUrl: l.photoUrl ?? '',
     })
   }
 
@@ -42,26 +42,50 @@ export default function Leaders() {
     setBusy(true)
     setActionError(null)
 
-    const payload = {
-      name: form.name.trim(),
-      role_title: form.role_title.trim() || null,
-      bio: form.bio.trim() || null,
-      photo_url: form.photo_url || null,
-      sort_order: data?.length ?? 0,
-      is_visible: true,
-    }
-
-    const res = editingId
-      ? await supabase.from('youth_leaders').update(payload).eq('id', editingId)
-      : await supabase.from('youth_leaders').insert(payload)
-
-    setBusy(false)
-    if (res.error) setActionError(res.error.message)
-    else {
+    try {
+      if (editingId) {
+        // The update endpoint replaces the whole row, so untouched
+        // fields must be re-sent from the loaded record.
+        const current = data?.find((l) => l.id === editingId)
+        await authedPut(`/api/leaders/${editingId}`, {
+          userId: current?.userId ?? null,
+          name: form.name.trim(),
+          roleTitle: form.roleTitle.trim() || null,
+          bio: form.bio.trim() || null,
+          photoUrl: form.photoUrl || null,
+          sortOrder: current?.sortOrder ?? 0,
+          isVisible: current?.isVisible ?? true,
+        })
+      } else {
+        await authedPost('/api/leaders', {
+          name: form.name.trim(),
+          roleTitle: form.roleTitle.trim() || null,
+          bio: form.bio.trim() || null,
+          photoUrl: form.photoUrl || null,
+          sortOrder: data?.length ?? 0,
+          isVisible: true,
+        })
+      }
       reset()
       reload()
+    } catch (err) {
+      setActionError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
   }
+
+  /** Replaces the whole row: every field is re-sent with one swapped order. */
+  const putFull = (l: YouthLeader, sortOrder: number, isVisible: boolean) =>
+    authedPut(`/api/leaders/${l.id}`, {
+      userId: l.userId,
+      name: l.name,
+      roleTitle: l.roleTitle,
+      photoUrl: l.photoUrl,
+      bio: l.bio,
+      sortOrder,
+      isVisible,
+    })
 
   const move = async (index: number, dir: -1 | 1) => {
     const rows = data ?? []
@@ -70,16 +94,22 @@ export default function Leaders() {
     const a = rows[index]
     const b = rows[target]
     setActionError(null)
-    const r1 = await supabase.from('youth_leaders').update({ sort_order: target }).eq('id', a.id)
-    const r2 = await supabase.from('youth_leaders').update({ sort_order: index }).eq('id', b.id)
-    if (r1.error || r2.error) setActionError((r1.error ?? r2.error)!.message)
-    else reload()
+    try {
+      await putFull(a, target, a.isVisible)
+      await putFull(b, index, b.isVisible)
+      reload()
+    } catch (err) {
+      setActionError((err as Error).message)
+    }
   }
 
-  const run = async (fn: () => PromiseLike<{ error: { message: string } | null }>) => {
-    const { error } = await fn()
-    if (error) setActionError(error.message)
-    else reload()
+  const run = async (fn: () => Promise<unknown>) => {
+    try {
+      await fn()
+      reload()
+    } catch (err) {
+      setActionError((err as Error).message)
+    }
   }
 
   return (
@@ -105,8 +135,8 @@ export default function Leaders() {
           </Field>
           <Field label="Role">
             <input
-              value={form.role_title}
-              onChange={(e) => setForm({ ...form, role_title: e.target.value })}
+              value={form.roleTitle}
+              onChange={(e) => setForm({ ...form, roleTitle: e.target.value })}
               placeholder="Youth Leader"
               className={inputClass}
             />
@@ -124,9 +154,9 @@ export default function Leaders() {
 
         <Field label="Photo">
           <div className="flex items-center gap-4">
-            {form.photo_url && (
+            {form.photoUrl && (
               <img
-                src={form.photo_url}
+                src={form.photoUrl}
                 alt=""
                 className="h-16 w-16 rounded-full object-cover ring-1 ring-line"
               />
@@ -140,8 +170,8 @@ export default function Leaders() {
                 if (!f) return
                 setBusy(true)
                 try {
-                  const url = await uploadSingleImage(f, 'images', 'leaders')
-                  setForm((prev) => ({ ...prev, photo_url: url }))
+                  const url = await uploadSingleImage(f, 'images')
+                  setForm((prev) => ({ ...prev, photoUrl: url }))
                 } catch (err) {
                   setActionError((err as Error).message)
                 } finally {
@@ -191,8 +221,8 @@ export default function Leaders() {
                     &darr;
                   </button>
                 </div>
-                {l.photo_url ? (
-                  <img src={l.photo_url} alt="" className="h-12 w-12 rounded-full object-cover" />
+                {l.photoUrl ? (
+                  <img src={l.photoUrl} alt="" className="h-12 w-12 rounded-full object-cover" />
                 ) : (
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-navy font-bold text-white">
                     {l.name.charAt(0)}
@@ -200,9 +230,9 @@ export default function Leaders() {
                 )}
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-heading">{l.name}</p>
-                  <p className="truncate text-sm text-muted">{l.role_title}</p>
+                  <p className="truncate text-sm text-muted">{l.roleTitle}</p>
                 </div>
-                {!l.is_visible && (
+                {!l.isVisible && (
                   <span className="rounded bg-gray-200 px-2 py-0.5 text-xs font-bold uppercase text-gray-700">
                     Hidden
                   </span>
@@ -218,22 +248,17 @@ export default function Leaders() {
                   <button
                     type="button"
                     onClick={() =>
-                      run(() =>
-                        supabase
-                          .from('youth_leaders')
-                          .update({ is_visible: !l.is_visible })
-                          .eq('id', l.id),
-                      )
+                      run(() => putFull(l, l.sortOrder, !l.isVisible))
                     }
                     className="text-sm font-semibold text-heading hover:text-brand-red"
                   >
-                    {l.is_visible ? 'Hide' : 'Show'}
+                    {l.isVisible ? 'Hide' : 'Show'}
                   </button>
                   <button
                     type="button"
                     onClick={() => {
                       if (window.confirm(`Remove ${l.name}?`))
-                        run(() => supabase.from('youth_leaders').delete().eq('id', l.id))
+                        run(() => authedDelete(`/api/leaders/${l.id}`))
                     }}
                     className="text-sm font-semibold text-brand-red hover:underline"
                   >

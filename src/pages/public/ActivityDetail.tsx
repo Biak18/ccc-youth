@@ -43,7 +43,7 @@ export default function ActivityDetail() {
       <Seo
         title={activity.title}
         description={activity.description ?? `Photos from ${activity.title}.`}
-        image={activity.cover_image_url}
+        image={activity.coverImageUrl}
         type="article"
       />
       <div className="bg-navy">
@@ -54,16 +54,16 @@ export default function ActivityDetail() {
             {activity.title}
           </h1>
           <p className="mt-3 font-semibold text-white/90">
-            {formatDate(activity.activity_date)}
+            {formatDate(activity.activityDate)}
           </p>
           {activity.location && <p className="text-white/70">{activity.location}</p>}
         </div>
       </div>
 
       <Section>
-        {activity.cover_image_url && (
+        {activity.coverImageUrl && (
           <CoverImage
-            src={activity.cover_image_url}
+            src={activity.coverImageUrl}
             alt={activity.title}
             className="mb-8 aspect-[16/9] rounded-2xl"
           />

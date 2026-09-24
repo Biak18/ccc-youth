@@ -89,7 +89,7 @@ export default function PhotoUploader({
           {existing.map((m, i) => (
             <li key={m.id} className="overflow-hidden rounded-lg border border-line bg-card">
               <img
-                src={m.thumbnail_url || m.url}
+                src={m.thumbnailUrl || m.url}
                 alt={m.title ?? 'Activity photo'}
                 className="aspect-square w-full object-cover"
               />

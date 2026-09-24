@@ -1,9 +1,11 @@
-import { supabase } from './supabase'
+import { API_BASE, tokenStore } from './api'
 
 /**
- * Resize and compress in the browser before upload, so a 5 MB phone
- * photo becomes a few hundred KB. Keeps storage small and the public
- * gallery fast (ARCHITECTURE.md section 11).
+ * Uploads go browser → backend → Cloudinary, so public URLs are
+ * `res.cloudinary.com` (reachable without VPN).
+ *
+ * The canvas WebP compression stays: the backend accepts the bytes
+ * as-is, so compressing client-side still saves bandwidth.
  */
 async function toWebp(file: File, maxEdge: number, quality: number): Promise<Blob> {
   const bitmap = await createImageBitmap(file)
@@ -26,56 +28,49 @@ async function toWebp(file: File, maxEdge: number, quality: number): Promise<Blo
   return blob
 }
 
-export type UploadedPhoto = { url: string; thumbnail_url: string }
+export type UploadBucket = 'branding' | 'images' | 'thumbnails' | 'videos'
 
-/** Uploads a full-size image plus a small thumbnail. */
-export async function uploadPhoto(
-  file: File,
-  activityId: string,
-): Promise<UploadedPhoto> {
-  const id = crypto.randomUUID()
-  const path = `${activityId}/${id}.webp`
+async function uploadBlob(blob: Blob, bucket: UploadBucket): Promise<string> {
+  const form = new FormData()
+  form.append('bucket', bucket)
+  form.append('file', blob, 'photo.webp')
 
+  const res = await fetch(`${API_BASE}/api/uploads`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${tokenStore.getAccess()}` },
+    body: form,
+  })
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as {
+      title?: string
+      detail?: string
+    } | null
+    throw new Error(body?.detail ?? body?.title ?? `Upload failed (${res.status})`)
+  }
+  const { url } = (await res.json()) as { url: string }
+  return url
+}
+
+export type UploadedPhoto = { url: string; thumbnailUrl: string }
+
+/**
+ * Uploads a full-size image plus a small thumbnail (two calls, one
+ * per bucket) and returns both Cloudinary URLs.
+ */
+export async function uploadPhoto(file: File): Promise<UploadedPhoto> {
   const full = await toWebp(file, 1920, 0.82)
   const thumb = await toWebp(file, 480, 0.75)
-
-  const up1 = await supabase.storage
-    .from('images')
-    .upload(path, full, { contentType: 'image/webp', upsert: false })
-  if (up1.error) throw new Error(up1.error.message)
-
-  const up2 = await supabase.storage
-    .from('thumbnails')
-    .upload(path, thumb, { contentType: 'image/webp', upsert: false })
-  if (up2.error) throw new Error(up2.error.message)
-
-  return {
-    url: supabase.storage.from('images').getPublicUrl(path).data.publicUrl,
-    thumbnail_url: supabase.storage.from('thumbnails').getPublicUrl(path).data.publicUrl,
-  }
+  const [url, thumbnailUrl] = await Promise.all([
+    uploadBlob(full, 'images'),
+    uploadBlob(thumb, 'thumbnails'),
+  ])
+  return { url, thumbnailUrl }
 }
 
-/** Uploads one branding or leader image and returns its public URL. */
+/** Uploads one branding/leader/cover image and returns its Cloudinary URL. */
 export async function uploadSingleImage(
   file: File,
-  bucket: 'branding' | 'images',
-  folder = 'misc',
+  bucket: UploadBucket = 'branding',
 ): Promise<string> {
-  const path = `${folder}/${crypto.randomUUID()}.webp`
-  const blob = await toWebp(file, 1200, 0.85)
-  const { error } = await supabase.storage
-    .from(bucket)
-    .upload(path, blob, { contentType: 'image/webp' })
-  if (error) throw new Error(error.message)
-  return supabase.storage.from(bucket).getPublicUrl(path).data.publicUrl
-}
-
-/** Best-effort storage cleanup when a photo is removed. */
-export async function deletePhotoFiles(url: string) {
-  const marker = '/storage/v1/object/public/images/'
-  const i = url.indexOf(marker)
-  if (i === -1) return
-  const path = url.slice(i + marker.length)
-  await supabase.storage.from('images').remove([path])
-  await supabase.storage.from('thumbnails').remove([path])
+  return uploadBlob(await toWebp(file, 1200, 0.85), bucket)
 }

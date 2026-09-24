@@ -16,9 +16,9 @@ import Settings from '../pages/admin/Settings'
 /**
  * The entire dashboard, loaded as one lazy chunk from /admin/*.
  *
- * Everything that needs supabase-js - auth, uploads and writes - lives
- * behind this boundary, so a visitor reading the public site never
- * downloads it.
+ * Everything that needs the backend auth token - login state, uploads
+ * and writes - lives behind this boundary, so a visitor reading the
+ * public site never downloads it.
  */
 export default function AdminRoutes() {
   return (

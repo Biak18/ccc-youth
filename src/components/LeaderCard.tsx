@@ -3,9 +3,9 @@ import type { YouthLeader } from '../types/db'
 export default function LeaderCard({ leader }: { leader: YouthLeader }) {
   return (
     <div className="text-center">
-      {leader.photo_url ? (
+      {leader.photoUrl ? (
         <img
-          src={leader.photo_url}
+          src={leader.photoUrl}
           alt={leader.name}
           loading="lazy"
           className="mx-auto h-28 w-28 rounded-full object-cover ring-4 ring-surface"
@@ -19,7 +19,7 @@ export default function LeaderCard({ leader }: { leader: YouthLeader }) {
         </div>
       )}
       <h3 className="mt-4 font-bold text-heading">{leader.name}</h3>
-      {leader.role_title && <p className="text-sm text-muted">{leader.role_title}</p>}
+      {leader.roleTitle && <p className="text-sm text-muted">{leader.roleTitle}</p>}
     </div>
   )
 }

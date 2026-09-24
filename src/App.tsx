@@ -8,8 +8,8 @@ import Home from './pages/public/Home'
  * visitors load. Every other page is a separate chunk.
  *
  * The dashboard and login live behind their own lazy entry points, and
- * they are the only code that imports supabase-js, so public visitors
- * never download the SDK.
+ * they are the only code that uses the auth token, so public visitors
+ * never download admin code.
  */
 const About = lazy(() => import('./pages/public/About'))
 const Events = lazy(() => import('./pages/public/Events'))

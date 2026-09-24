@@ -9,7 +9,7 @@ export default function EventCard({ event }: { event: EventRow }) {
       <Link to={`/events/${event.slug}`} className="block">
         <div className="overflow-hidden">
           <CoverImage
-            src={event.cover_image_url}
+            src={event.coverImageUrl}
             alt={event.title}
             className="aspect-[16/9] transition duration-500 ease-out group-hover:scale-[1.06]"
           />
@@ -19,9 +19,9 @@ export default function EventCard({ event }: { event: EventRow }) {
             {event.title}
           </h3>
           <p className="mt-1 text-sm font-bold text-ember">
-            {formatDate(event.start_date)}
+            {formatDate(event.startDate)}
           </p>
-          <p className="text-sm text-muted">{formatDayTime(event.start_date)}</p>
+          <p className="text-sm text-muted">{formatDayTime(event.startDate)}</p>
           {event.location && <p className="mt-1 text-sm text-muted">{event.location}</p>}
           {event.description && (
             <p className="mt-3 line-clamp-2 text-sm text-ink/80">{event.description}</p>

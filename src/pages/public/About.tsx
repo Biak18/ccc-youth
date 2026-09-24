@@ -18,7 +18,7 @@ export default function About() {
       <Section>
         <div className="max-w-3xl space-y-4 text-lg text-ink/85">
           <p>
-            The Youth ministry of {data?.church_name ?? site.churchName} is a community of
+            The Youth ministry of {data?.churchName ?? site.churchName} is a community of
             young people growing together in faith, friendship and service.
           </p>
           <p>

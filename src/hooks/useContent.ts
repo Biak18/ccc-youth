@@ -1,35 +1,36 @@
 import { useEffect, useState } from 'react'
-import { inList, restQuery, type RestResult } from '../lib/rest'
+import { ApiError, apiFetch, apiGetPaged, type Paged } from '../lib/api'
 import type {
   Activity,
   Announcement,
   EventRow,
   Media,
   SiteSettings,
-  Status,
   YouthLeader,
 } from '../types/db'
 
 type Result<T> = { data: T | null; loading: boolean; error: string | null }
 
 /**
- * Listing queries use status = 'published' so drafts never reach the
- * public site. Detail and archive queries also allow 'archived', which
- * stays readable for historical browsing but is kept out of the
- * current/featured sections.
- *
- * RLS enforces all of this again on the server.
+ * Public reads go to the backend with no auth header; anonymous
+ * callers only ever see published content.
  */
-export function useQuery<T>(run: () => Promise<RestResult<T>>, deps: unknown[] = []): Result<T> {
+export function useQuery<T>(run: () => Promise<T | null>, deps: unknown[] = []): Result<T> {
   const [state, setState] = useState<Result<T>>({ data: null, loading: true, error: null })
 
   useEffect(() => {
     let active = true
     setState((s) => ({ ...s, loading: true }))
-    run().then(({ data, error }) => {
-      if (!active) return
-      setState({ data: data ?? null, loading: false, error: error?.message ?? null })
-    })
+    run().then(
+      (data) => {
+        if (!active) return
+        setState({ data: data ?? null, loading: false, error: null })
+      },
+      (e) => {
+        if (!active) return
+        setState({ data: null, loading: false, error: (e as Error).message })
+      },
+    )
     return () => {
       active = false
     }
@@ -39,88 +40,68 @@ export function useQuery<T>(run: () => Promise<RestResult<T>>, deps: unknown[] =
   return state
 }
 
-const PUBLIC: Status[] = ['published', 'archived']
-const nowIso = () => new Date().toISOString()
+/** A 404 on a slug lookup is an empty result, not an error. */
+async function bySlug<T>(path: string): Promise<T | null> {
+  try {
+    return await apiFetch<T>(path)
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) return null
+    throw e
+  }
+}
 
 /* ---------------------------------------------------------------- lists */
 
 export const useSiteSettings = () =>
-  useQuery<SiteSettings>(() =>
-    restQuery('site_settings', { filters: { id: 'eq.1' }, single: true }),
-  )
+  useQuery<SiteSettings>(() => apiFetch<SiteSettings>('/api/settings'))
 
 export const useUpcomingEvents = (limit = 12) =>
   useQuery<EventRow[]>(
-    () =>
-      restQuery('events', {
-        filters: { status: 'eq.published', start_date: `gte.${nowIso()}` },
-        order: 'start_date.asc',
-        limit,
-      }),
+    () => apiGetPaged<EventRow>(`/api/events?filter=upcoming&pageSize=${limit}`),
     [limit],
   )
 
 export const usePastEvents = (limit = 12) =>
   useQuery<EventRow[]>(
-    () =>
-      restQuery('events', {
-        filters: { status: inList(PUBLIC), start_date: `lt.${nowIso()}` },
-        order: 'start_date.desc',
-        limit,
-      }),
+    () => apiGetPaged<EventRow>(`/api/events?filter=past&pageSize=${limit}`),
     [limit],
   )
 
 export const useActivities = (limit = 24) =>
   useQuery<Activity[]>(
-    () =>
-      restQuery('activities', {
-        filters: { status: 'eq.published' },
-        order: 'activity_date.desc',
-        limit,
-      }),
+    () => apiGetPaged<Activity>(`/api/activities?pageSize=${limit}`),
     [limit],
   )
 
-/** The long-term archive: published + archived, newest first. */
+/**
+ * The long-term archive: published + archived, newest first. The
+ * backend has no combined list for anonymous callers, so both are
+ * fetched and merged client-side.
+ */
 export const useArchive = (limit = 200) =>
-  useQuery<Activity[]>(
-    () =>
-      restQuery('activities', {
-        filters: { status: inList(PUBLIC) },
-        order: 'activity_date.desc',
-        limit,
-      }),
-    [limit],
-  )
+  useQuery<Activity[]>(async () => {
+    const [published, archived] = await Promise.all([
+      apiFetch<Paged<Activity>>(`/api/activities?pageSize=${limit}`),
+      apiFetch<Paged<Activity>>(`/api/activities?status=archived&pageSize=${limit}`),
+    ])
+    const seen = new Set<string>()
+    return [...published.items, ...archived.items]
+      .filter((a) => (seen.has(a.id) ? false : (seen.add(a.id), true)))
+      .sort((a, b) => b.activityDate.localeCompare(a.activityDate))
+  }, [limit])
 
 export const useAnnouncements = (limit = 20) =>
   useQuery<Announcement[]>(
-    () =>
-      restQuery('announcements', {
-        filters: { status: 'eq.published' },
-        order: 'is_pinned.desc,published_at.desc',
-        limit,
-      }),
+    () => apiGetPaged<Announcement>(`/api/announcements?pageSize=${limit}`),
     [limit],
   )
 
 export const useLeaders = () =>
-  useQuery<YouthLeader[]>(() =>
-    restQuery('youth_leaders', {
-      filters: { is_visible: 'eq.true' },
-      order: 'sort_order.asc',
-    }),
-  )
+  useQuery<YouthLeader[]>(() => apiFetch<YouthLeader[]>('/api/leaders'))
 
 export const useLatestVideos = (limit = 3) =>
   useQuery<Media[]>(
-    () =>
-      restQuery('media', {
-        filters: { type: 'eq.video' },
-        order: 'created_at.desc',
-        limit,
-      }),
+    () => apiGetPaged<Media>(`/api/media?type=video&pageSize=${limit}`),
     [limit],
   )
 
@@ -128,31 +109,22 @@ export const useLatestVideos = (limit = 3) =>
 
 export const useActivityBySlug = (slug?: string) =>
   useQuery<Activity>(
-    () =>
-      restQuery('activities', {
-        filters: { slug: `eq.${slug ?? ''}`, status: inList(PUBLIC) },
-        single: true,
-      }),
+    () => (slug ? bySlug<Activity>(`/api/activities/slug/${slug}`) : Promise.resolve(null)),
     [slug],
   )
 
 export const useEventBySlug = (slug?: string) =>
   useQuery<EventRow>(
-    () =>
-      restQuery('events', {
-        filters: { slug: `eq.${slug ?? ''}`, status: inList(PUBLIC) },
-        single: true,
-      }),
+    () => (slug ? bySlug<EventRow>(`/api/events/slug/${slug}`) : Promise.resolve(null)),
     [slug],
   )
 
 export const useAnnouncementBySlug = (slug?: string) =>
   useQuery<Announcement>(
     () =>
-      restQuery('announcements', {
-        filters: { slug: `eq.${slug ?? ''}`, status: 'eq.published' },
-        single: true,
-      }),
+      slug
+        ? bySlug<Announcement>(`/api/announcements/slug/${slug}`)
+        : Promise.resolve(null),
     [slug],
   )
 
@@ -161,28 +133,15 @@ export const useActivityMedia = (activityId?: string) =>
   useQuery<Media[]>(
     () =>
       activityId
-        ? restQuery<Media[]>('media', {
-            filters: { activity_id: `eq.${activityId}` },
-            order: 'sort_order.asc,created_at.asc',
-          })
-        : Promise.resolve({ data: [], error: null }),
+        ? apiFetch<Media[]>(`/api/activities/${activityId}/media`)
+        : Promise.resolve([]),
     [activityId],
   )
 
-/**
- * Every public image, for the Gallery page.
- *
- * No join needed: the media RLS policy already hides anything whose
- * parent activity is not public.
- */
+/** Every public image, for the Gallery page. */
 export const useAllImages = (limit = 300) =>
   useQuery<Media[]>(
-    () =>
-      restQuery('media', {
-        filters: { type: 'eq.image' },
-        order: 'created_at.desc',
-        limit,
-      }),
+    () => apiGetPaged<Media>(`/api/media?type=image&pageSize=${limit}`),
     [limit],
   )
 
@@ -192,7 +151,7 @@ export const useAllImages = (limit = 300) =>
 export function groupByYear(rows: Activity[]): [number, Activity[]][] {
   const map = new Map<number, Activity[]>()
   for (const a of rows) {
-    const y = new Date(a.activity_date).getFullYear()
+    const y = new Date(a.activityDate).getFullYear()
     map.set(y, [...(map.get(y) ?? []), a])
   }
   return [...map.entries()].sort((a, b) => b[0] - a[0])

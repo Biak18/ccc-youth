@@ -34,7 +34,7 @@ export default function PhotoGrid({
               aria-label={`Open photo ${i + 1} of ${photos.length}`}
             >
               <img
-                src={p.thumbnail_url || p.url}
+                src={p.thumbnailUrl || p.url}
                 alt={p.title ?? `${altPrefix} photo ${i + 1}`}
                 loading="lazy"
                 decoding="async"

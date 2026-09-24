@@ -9,7 +9,7 @@ export default function Contact() {
   const address = data?.address ?? site.address
   const phone = data?.phone ?? site.phone
   const email = data?.email ?? site.email
-  const facebook = data?.facebook_url ?? site.facebookUrl
+  const facebook = data?.facebookUrl ?? site.facebookUrl
 
   return (
     <>
@@ -19,7 +19,7 @@ export default function Contact() {
         <div className="grid gap-10 md:grid-cols-2">
           <div>
             <h2 className="text-xl font-bold text-heading">
-              {data?.church_name ?? site.churchName}
+              {data?.churchName ?? site.churchName}
             </h2>
             <dl className="mt-4 space-y-3 text-ink/85">
               {address && (

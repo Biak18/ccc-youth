@@ -24,7 +24,7 @@ export default function Hero() {
   const { data } = useSiteSettings()
 
   // Images managed in Site Settings win; otherwise use the bundled photos.
-  const fromDb = (data?.hero_images ?? []).filter(Boolean)
+  const fromDb = (data?.heroImages ?? []).filter(Boolean)
   const images = fromDb.length > 0 ? fromDb : bundledHeroes
 
   const [index, setIndex] = useState(0)
@@ -128,7 +128,7 @@ export default function Hero() {
       <div className="mx-auto flex min-h-[480px] max-w-6xl flex-col justify-center px-4 py-16 md:min-h-[600px] md:py-20">
         <h1>
           <span className="block text-sm font-semibold uppercase tracking-[0.2em] text-white/80 md:text-base">
-            {data?.church_name ?? site.churchName}
+            {data?.churchName ?? site.churchName}
           </span>
           <span className="mt-1 block text-5xl font-extrabold tracking-tight text-white sm:text-6xl md:text-7xl">
             Youth

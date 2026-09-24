@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { supabase } from '../../lib/supabase'
+import { authedDelete, authedPatch } from '../../lib/api'
 import { useAllActivities } from '../../hooks/useAdminData'
 import { formatShort } from '../../lib/format'
 import type { Status } from '../../types/db'
@@ -30,20 +30,28 @@ export default function ActivityList() {
   const setStatus = async (id: string, status: Status) => {
     setBusy(id)
     setActionError(null)
-    const { error } = await supabase.from('activities').update({ status }).eq('id', id)
-    setBusy(null)
-    if (error) setActionError(error.message)
-    else reload()
+    try {
+      await authedPatch(`/api/activities/${id}/status`, { status })
+      reload()
+    } catch (e) {
+      setActionError((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
   }
 
   const remove = async (id: string, title: string) => {
     if (!window.confirm(`Delete "${title}"? Its photos and videos will be removed too.`)) return
     setBusy(id)
     setActionError(null)
-    const { error } = await supabase.from('activities').delete().eq('id', id)
-    setBusy(null)
-    if (error) setActionError(error.message)
-    else reload()
+    try {
+      await authedDelete(`/api/activities/${id}`)
+      reload()
+    } catch (e) {
+      setActionError((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
   }
 
   return (
@@ -98,7 +106,7 @@ export default function ActivityList() {
                   >
                     {a.title}
                   </Link>
-                  <span className="text-sm text-muted">{formatShort(a.activity_date)}</span>
+                  <span className="text-sm text-muted">{formatShort(a.activityDate)}</span>
                   <StatusBadge status={a.status} />
                 </div>
                 <div className="mt-2 flex flex-wrap items-center gap-4">

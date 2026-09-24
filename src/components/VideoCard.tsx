@@ -2,7 +2,7 @@ import type { Media } from '../types/db'
 import { formatDate, youtubeThumb } from '../lib/format'
 
 export default function VideoCard({ video }: { video: Media }) {
-  const thumb = video.thumbnail_url || youtubeThumb(video.url)
+  const thumb = video.thumbnailUrl || youtubeThumb(video.url)
   const title = video.title ?? 'Youth video'
 
   return (
@@ -34,7 +34,7 @@ export default function VideoCard({ video }: { video: Media }) {
         <h3 className="font-semibold text-heading transition-colors group-hover:text-brand-red">
           {title}
         </h3>
-        <p className="mt-1 text-sm text-muted">{formatDate(video.created_at)}</p>
+        {video.createdAt && <p className="mt-1 text-sm text-muted">{formatDate(video.createdAt)}</p>}
       </div>
     </a>
   )

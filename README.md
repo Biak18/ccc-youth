@@ -8,7 +8,7 @@ Spec lives in `docs/` (`PRD.md`, `ARCHITECTURE.md`, `DATA.md`, `CONTENT.md`, `UI
 
 - React 19 + TypeScript + Vite + Tailwind CSS v4
 - React Router v7, React Query, React Hook Form + Zod
-- Supabase (Postgres + Auth + Storage) via `supabase-js` (admin) and plain REST (public site, so visitors never download the SDK)
+- CityYouth backend API (.NET + Postgres) for data, auth and uploads (Cloudinary media URLs); the browser never talks to Supabase directly
 - Deployed as SPA on Vercel (`vercel.json`) / Railway (`preview.host + PORT`)
 
 ## Getting started
@@ -18,12 +18,11 @@ npm install
 npm run dev
 ```
 
-Copy env (public anon key only — never commit service keys):
+Copy env:
 
 ```bash
 # .env.local
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=sb_publishable_...
+VITE_API_URL=https://ccc-youth-api-production.up.railway.app   # no trailing slash
 SITE_URL=https://cccyouth.org   # used for sitemap.xml + robots.txt
 ```
 
@@ -33,7 +32,7 @@ SITE_URL=https://cccyouth.org   # used for sitemap.xml + robots.txt
 |---|---|
 | `npm run dev` | Local dev server |
 | `npm run build` | `tsc -b && npm run sitemap && vite build` (sitemap runs first so `dist/` gets the fresh copy) |
-| `npm run sitemap` | Builds `public/sitemap.xml` + `public/robots.txt` from Supabase (falls back to static URLs when credentials are missing, so the build never fails on SEO) |
+| `npm run sitemap` | Builds `public/sitemap.xml` + `public/robots.txt` from the backend API (falls back to static URLs when the API is unreachable, so the build never fails on SEO) |
 | `npm run lint` | ESLint |
 | `npm run preview` / `npm start` | Serve production build (Railway injects `PORT`) |
 
@@ -47,8 +46,8 @@ src/
   pages/admin/    Dashboard, Activity/Event/Announcement lists + forms,
                   Leaders, Users, Settings, Login
   components/     Cards, Hero, Navbar, Footer, Lightbox, Seo, ...
-  hooks/          useContent (public REST), useAdminData, useAuth, useFilters
-  lib/            rest, supabase (admin only), upload, format, categories
+  hooks/          useContent (public reads), useAdminData, useAuth, useFilters
+  lib/            api (backend client + token refresh), upload, format, categories
   routes/         LoginRoute, AdminRoutes (lazy, auth-gated)
   layouts/        PublicLayout, AdminLayout
 scripts/
@@ -66,11 +65,11 @@ Public routes (`src/App.tsx`):
 
 ## Content model
 
-- **Events** — what's coming (start/end date, location, cover, optional `registration_url`).
-- **Activities** — what happened (real `activity_date` kept separate from upload date, cover + `media[]`).
-- **Media** — `image | video` × `storage | youtube | external`, ordered by `sort_order`.
-- **Announcements** — short notices, `is_pinned` first.
-- **Youth leaders** — name, role, photo, bio, `is_visible`.
+- **Events** — what's coming (start/end date, location, cover, optional `registrationUrl`).
+- **Activities** — what happened (real `activityDate` kept separate from upload date, cover + `media[]`).
+- **Media** — `image | video` × `storage | youtube | external`, ordered by `sortOrder`.
+- **Announcements** — short notices, `isPinned` first.
+- **Youth leaders** — name, role, photo, bio, `isVisible`.
 - **Site settings** (`id = 1`) — church/youth name, tagline, logo, hero, address, socials; overrides `src/site.ts` fallbacks.
 
 Workflow is `draft → published → archived`. Only `published` shows in current sections; `published + archived` stays readable for history (see `useQuery` in `src/hooks/useContent.ts`).

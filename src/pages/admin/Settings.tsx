@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { supabase } from '../../lib/supabase'
+import { authedGet, authedPut } from '../../lib/api'
 import { useAdminQuery } from '../../hooks/useAdminData'
 import { uploadSingleImage } from '../../lib/upload'
 import type { SiteSettings } from '../../types/db'
@@ -12,33 +12,31 @@ import {
 } from '../../components/admin/AdminUI'
 
 type FormState = {
-  church_name: string
+  churchName: string
   tagline: string
   description: string
   address: string
   phone: string
   email: string
-  facebook_url: string
-  youtube_url: string
-  instagram_url: string
+  facebookUrl: string
+  youtubeUrl: string
+  instagramUrl: string
 }
 
 const empty: FormState = {
-  church_name: '',
+  churchName: '',
   tagline: '',
   description: '',
   address: '',
   phone: '',
   email: '',
-  facebook_url: '',
-  youtube_url: '',
-  instagram_url: '',
+  facebookUrl: '',
+  youtubeUrl: '',
+  instagramUrl: '',
 }
 
 export default function Settings() {
-  const { data } = useAdminQuery<SiteSettings>(() =>
-    supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
-  )
+  const { data } = useAdminQuery<SiteSettings>(() => authedGet<SiteSettings>('/api/settings'))
   const [form, setForm] = useState<FormState>(empty)
   const [heroImages, setHeroImages] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
@@ -48,17 +46,17 @@ export default function Settings() {
   useEffect(() => {
     if (!data) return
     setForm({
-      church_name: data.church_name ?? '',
+      churchName: data.churchName ?? '',
       tagline: data.tagline ?? '',
       description: data.description ?? '',
       address: data.address ?? '',
       phone: data.phone ?? '',
       email: data.email ?? '',
-      facebook_url: data.facebook_url ?? '',
-      youtube_url: data.youtube_url ?? '',
-      instagram_url: data.instagram_url ?? '',
+      facebookUrl: data.facebookUrl ?? '',
+      youtubeUrl: data.youtubeUrl ?? '',
+      instagramUrl: data.instagramUrl ?? '',
     })
-    setHeroImages(data.hero_images ?? [])
+    setHeroImages(data.heroImages ?? [])
   }, [data])
 
   const moveHero = (index: number, dir: -1 | 1) =>
@@ -80,24 +78,28 @@ export default function Settings() {
     setSaved(false)
 
     const clean = (v: string) => (v.trim() === '' ? null : v.trim())
-    const payload = {
-      church_name: clean(form.church_name),
-      tagline: clean(form.tagline),
-      description: clean(form.description),
-      address: clean(form.address),
-      phone: clean(form.phone),
-      email: clean(form.email),
-      facebook_url: clean(form.facebook_url),
-      youtube_url: clean(form.youtube_url),
-      instagram_url: clean(form.instagram_url),
-      hero_images: heroImages,
-      hero_image_url: heroImages[0] ?? null,
+    try {
+      await authedPut('/api/settings', {
+        churchName: clean(form.churchName),
+        youthName: data?.youthName ?? null,
+        logoUrl: data?.logoUrl ?? null,
+        tagline: clean(form.tagline),
+        description: clean(form.description),
+        address: clean(form.address),
+        phone: clean(form.phone),
+        email: clean(form.email),
+        facebookUrl: clean(form.facebookUrl),
+        youtubeUrl: clean(form.youtubeUrl),
+        instagramUrl: clean(form.instagramUrl),
+        heroImages,
+        heroImageUrl: heroImages[0] ?? null,
+      })
+      setSaved(true)
+    } catch (err) {
+      setError((err as Error).message)
+    } finally {
+      setBusy(false)
     }
-
-    const { error } = await supabase.from('site_settings').update(payload).eq('id', 1)
-    setBusy(false)
-    if (error) setError(error.message)
-    else setSaved(true)
   }
 
   return (
@@ -117,7 +119,7 @@ export default function Settings() {
 
         <div className="grid gap-6 sm:grid-cols-2">
           <Field label="Church name">
-            <input value={form.church_name} onChange={set('church_name')} className={inputClass} />
+            <input value={form.churchName} onChange={set('churchName')} className={inputClass} />
           </Field>
           <Field label="Tagline">
             <input value={form.tagline} onChange={set('tagline')} className={inputClass} />
@@ -146,24 +148,24 @@ export default function Settings() {
           <Field label="Facebook URL">
             <input
               type="url"
-              value={form.facebook_url}
-              onChange={set('facebook_url')}
+              value={form.facebookUrl}
+              onChange={set('facebookUrl')}
               className={inputClass}
             />
           </Field>
           <Field label="YouTube URL">
             <input
               type="url"
-              value={form.youtube_url}
-              onChange={set('youtube_url')}
+              value={form.youtubeUrl}
+              onChange={set('youtubeUrl')}
               className={inputClass}
             />
           </Field>
           <Field label="Instagram URL">
             <input
               type="url"
-              value={form.instagram_url}
-              onChange={set('instagram_url')}
+              value={form.instagramUrl}
+              onChange={set('instagramUrl')}
               className={inputClass}
             />
           </Field>
@@ -228,7 +230,7 @@ export default function Settings() {
               setError(null)
               try {
                 for (const f of files) {
-                  const url = await uploadSingleImage(f, 'branding', 'hero')
+                  const url = await uploadSingleImage(f, 'branding')
                   setHeroImages((prev) => [...prev, url])
                 }
               } catch (err) {
